@@ -219,6 +219,18 @@ export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>> impleme
   }
 
   /**
+   * Helper method to assert that the toolbox result is exhaustive
+   * for handling results in a switch statement.
+   *
+   * @param result - The result to assert is exhaustive.
+   * @returns The result.
+   * @throws An error if the result is not exhaustive.
+   */
+  assertExhaustive(result: never): never {
+    throw new Error(`Unhandled toolbox result: ${(result as any).name}`);
+  }
+
+  /**
    * Gets the original tool declarations (used internally by pick-tool)
    */
   getTools(): T {

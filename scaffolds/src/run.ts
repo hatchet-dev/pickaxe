@@ -2,7 +2,7 @@ import { simpleAgent } from "./agents/simple/agent";
 
 async function main() {
   const result = await simpleAgent.run({
-    message: "is it snowing in Tokyo?",
+    message: "what holiday is it in toronto?",
   });
   console.log(JSON.stringify(result, null, 2));
 }

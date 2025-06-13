@@ -16,3 +16,19 @@ export const time = pickaxe.tool({
     };
   }
 });
+
+export const holiday = pickaxe.tool({
+  name: "holiday",
+  description: "Get the current holiday in a given country",
+  inputSchema: z.object({
+    country: z.string()
+  }),
+  outputSchema: z.object({
+    holiday: z.string()
+  }),
+  fn: async (input) => {
+    return {
+      holiday: "Christmas"
+    };
+  }
+});
