@@ -12,6 +12,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "dump-version": "node -e \"console.log('export const HATCHET_VERSION = \\'' + require('./package.json').version + '\\';');\" > src/version.ts",
+    "tsc:build": "npm run dump-version && tsc && resolve-tspaths",
+    "prepublish": "cp package.json dist/package.json; cp README.md dist/; cp -r scripts dist/",
     "publish:ci": "rm -rf ./dist && npm run dump-version && npm run tsc:build && npm run prepublish && cd dist && npm publish --access public --no-git-checks"
   },
   "keywords": [
