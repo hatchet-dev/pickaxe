@@ -5,6 +5,7 @@ import { addComponent } from './commands/add-component';
 import { addAgent } from './commands/add-agent';
 import { addTool } from './commands/add-tool';
 import { create } from './commands/create';
+import { startMcp } from './commands/mcp';
 
 const program = new Command();
 
@@ -43,5 +44,10 @@ program
   .description('Create a new project')
   .argument('[name]', 'Project name')
   .action(create);
+
+program
+  .command('mcp')
+  .description('Start the Model Context Protocol server')
+  .action(startMcp);
 
 program.parse();

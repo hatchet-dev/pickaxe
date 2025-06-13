@@ -8,16 +8,21 @@ interface AgentConfig {
   description: string;
 }
 
-export async function addAgent(name: string, options: { model?: string }) {
+// Core logic for adding an agent
+export async function createAgent(name: string, options: { model?: string; description?: string; silent?: boolean }) {
   try {
-    console.log(`🤖 Creating agent: ${name}`);
+    if (!options.silent) {
+      console.log(`🤖 Creating agent: ${name}`);
+    }
     
     // Verify agents directory exists
     const agentsDir = path.join(process.cwd(), 'agents');
-    await ensureAgentsDirectory(agentsDir);
+    await ensureAgentsDirectory(agentsDir, options.silent);
     
-    // Get agent configuration through interactive prompts
-    const config = await getAgentConfig(name);
+    // Get agent configuration - use provided description or prompt interactively
+    const config = options.description 
+      ? { name, description: options.description }
+      : await getAgentConfig(name);
     
     // Process templates - use absolute path from CLI tool location
     const outputDir = path.join(agentsDir, config.name);
@@ -29,24 +34,44 @@ export async function addAgent(name: string, options: { model?: string }) {
       { outputDir, force: false }
     );
 
-    console.log(`\n✅ Agent '${config.name}' created successfully!`);
-    console.log(`📁 Files created in: ${outputDir}`);
-    console.log('\n📝 Next steps:');
-    console.log('1. Implement the agent logic in the execute method');
-    console.log('2. Run the tests to verify functionality');
-    console.log('3. Update the agent implementation as needed');
+    if (!options.silent) {
+      console.log(`\n✅ Agent '${config.name}' created successfully!`);
+      console.log(`📁 Files created in: ${outputDir}`);
+      console.log('\n📝 Next steps:');
+      console.log('1. Implement the agent logic in the execute method');
+      console.log('2. Run the tests to verify functionality');
+      console.log('3. Update the agent implementation as needed');
+    }
+
+    return {
+      success: true,
+      message: `Agent '${config.name}' created successfully`,
+      outputDir,
+      config
+    };
     
   } catch (error) {
-    console.error('❌ Failed to create agent:', error instanceof Error ? error.message : 'Unknown error');
-    process.exit(1);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (!options.silent) {
+      console.error('❌ Failed to create agent:', errorMessage);
+      process.exit(1);
+    }
+    throw new Error(`Failed to create agent: ${errorMessage}`);
   }
 }
 
-async function ensureAgentsDirectory(agentsDir: string): Promise<void> {
+// CLI wrapper function that doesn't return a value
+export async function addAgent(name: string, options: { model?: string }) {
+  await createAgent(name, options);
+}
+
+async function ensureAgentsDirectory(agentsDir: string, silent?: boolean): Promise<void> {
   try {
     await fs.access(agentsDir);
   } catch {
-    console.log(`📁 Creating agents directory: ${agentsDir}`);
+    if (!silent) {
+      console.log(`📁 Creating agents directory: ${agentsDir}`);
+    }
     await fs.mkdir(agentsDir, { recursive: true });
   }
 }

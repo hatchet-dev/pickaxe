@@ -22,10 +22,12 @@
   "license": "ISC",
   "description": "CLI tool for managing components, agents, and tools",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.2",
     "axios": "^1.9.0",
     "commander": "^14.0.0",
     "handlebars": "^4.7.8",
-    "prompts": "^2.4.2"
+    "prompts": "^2.4.2",
+    "zod": "^3.25.64"
   },
   "devDependencies": {
     "@types/handlebars": "^4.1.0",
