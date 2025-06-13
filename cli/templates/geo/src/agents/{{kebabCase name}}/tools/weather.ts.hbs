@@ -1,0 +1,83 @@
+import { pickaxe } from "@/pickaxe-client";
+import { z } from "zod";
+
+const WeatherInput = z.object({
+  city: z.string().describe("The city to get the weather for")
+});
+
+const WeatherOutput = z.object({
+  weather: z.string()
+});
+
+interface WeatherResponse {
+  current: {
+    temperature_2m: number;
+    apparent_temperature: number;
+    relative_humidity_2m: number;
+    wind_speed_10m: number;
+    wind_gusts_10m: number;
+    weather_code: number;
+  };
+}
+
+const weatherCodes: Record<number, string> = {
+  0: "Clear sky",
+  1: "Mainly clear",
+  2: "Partly cloudy",
+  3: "Overcast",
+  45: "Fog",
+  48: "Depositing rime fog",
+  51: "Light drizzle",
+  53: "Moderate drizzle",
+  55: "Dense drizzle",
+  61: "Slight rain",
+  63: "Moderate rain",
+  65: "Heavy rain",
+  71: "Slight snow fall",
+  73: "Moderate snow fall",
+  75: "Heavy snow fall",
+  95: "Thunderstorm",
+  96: "Thunderstorm with slight hail",
+  99: "Thunderstorm with heavy hail"
+};
+
+export const weather = pickaxe.tool({
+  name: "weather",
+  description: "Get the weather in a given city",
+  inputSchema: WeatherInput,
+  outputSchema: WeatherOutput,
+  fn: async (input) => {
+    try {
+      // Get coordinates for the city
+      const geocodingUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(input.city)}&count=1`;
+      const geocodingResponse = await fetch(geocodingUrl);
+      const geocodingData = await geocodingResponse.json();
+
+      if (!geocodingData.results?.[0]) {
+        throw new Error(`Location '${input.city}' not found`);
+      }
+
+      const { latitude, longitude, name } = geocodingData.results[0];
+
+      // Get weather data
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,weather_code`;
+      
+      const response = await fetch(weatherUrl);
+      const data: WeatherResponse = await response.json();
+
+      const weatherDescription = weatherCodes[data.current.weather_code] || "Unknown";
+      const temperature = Math.round(data.current.temperature_2m);
+      const feelsLike = Math.round(data.current.apparent_temperature);
+      const humidity = data.current.relative_humidity_2m;
+      const windSpeed = Math.round(data.current.wind_speed_10m);
+
+      return {
+        weather: `${weatherDescription} in ${name}. Temperature: ${temperature}°C (feels like ${feelsLike}°C). Humidity: ${humidity}%. Wind: ${windSpeed} km/h.`
+      };
+    } catch (error) {
+      return {
+        weather: `Unable to get weather for ${input.city}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  },
+});

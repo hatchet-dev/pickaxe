@@ -1,0 +1,70 @@
+import { z } from "zod";
+import { pickaxe } from "@/pickaxe-client";
+
+interface HolidayResponse {
+  date: string;
+  localName: string;
+  name: string;
+  countryCode: string;
+  fixed: boolean;
+  global: boolean;
+  counties: string[] | null;
+  launchYear: number | null;
+  types: string[];
+}
+
+export const holiday = pickaxe.tool({
+  name: "holiday",
+  description: "Get the current holiday in a given country",
+  inputSchema: z.object({
+    country: z.string()
+  }),
+  outputSchema: z.object({
+    holiday: z.string()
+  }),
+  fn: async (input) => {
+    try {
+      const currentYear = new Date().getFullYear();
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      // Use public holidays API
+      const holidayUrl = `https://date.nager.at/api/v3/PublicHolidays/${currentYear}/${encodeURIComponent(input.country)}`;
+      const response = await fetch(holidayUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Country '${input.country}' not found or API unavailable`);
+      }
+      
+      const holidays: HolidayResponse[] = await response.json();
+      
+      // Find today's holiday
+      const todayHoliday = holidays.find(holiday => holiday.date === today);
+      
+      if (todayHoliday) {
+        return {
+          holiday: `Today is ${todayHoliday.localName || todayHoliday.name} in ${input.country}`
+        };
+      }
+      
+      // Find next upcoming holiday
+      const upcomingHoliday = holidays
+        .filter(holiday => holiday.date > today)
+        .sort((a, b) => a.date.localeCompare(b.date))[0];
+      
+      if (upcomingHoliday) {
+        const holidayDate = new Date(upcomingHoliday.date);
+        return {
+          holiday: `Next holiday in ${input.country}: ${upcomingHoliday.localName || upcomingHoliday.name} on ${holidayDate.toLocaleDateString()}`
+        };
+      }
+      
+      return {
+        holiday: `No upcoming holidays found for ${input.country} this year`
+      };
+    } catch (error) {
+      return {
+        holiday: `Unable to get holiday information for ${input.country}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+});

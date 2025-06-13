@@ -1,0 +1,49 @@
+import { pickaxe } from "@/pickaxe-client";
+import { weather } from "./tools/weather";
+import { time } from "./tools/time";
+import { holiday } from "./tools/holiday";
+import z from "zod";
+
+const {{pascalCase name}}AgentInput = z.object({
+  message: z.string(),
+});
+
+const {{pascalCase name}}AgentOutput = z.object({
+  message: z.string(),
+});
+
+export const {{camelCase name}}Toolbox = pickaxe.toolbox({
+  tools: [weather, time, holiday],
+});
+
+export const {{camelCase name}}Agent = pickaxe.agent({
+  name: "{{kebabCase name}}-agent",
+  executionTimeout: "15m",
+  inputSchema: {{pascalCase name}}AgentInput,
+  outputSchema: {{pascalCase name}}AgentOutput,
+  description: "A {{name}} agent to get the weather and time",
+  fn: async (input, ctx) => {
+    const result = await {{camelCase name}}Toolbox.pickAndRun(ctx, {
+      prompt: input.message,
+    });
+
+    switch (result.name) {
+      case "weather":
+        return {
+          message: `The weather in ${result.args.city} is ${result.output}`,
+        };
+      case "time":
+        return {
+          message: `The time in ${result.args.city} is ${result.output}`,
+        };
+      case "holiday":
+        return {
+          message: `The holiday in ${result.args.country} is ${result.output}`,
+        };
+      default:
+        return {{camelCase name}}Toolbox.assertExhaustive(result);
+    }
+  },
+});
+
+export default [{{camelCase name}}Agent, {{camelCase name}}Toolbox];

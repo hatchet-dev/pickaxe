@@ -1,0 +1,45 @@
+# {{name}}
+
+A fullstack Pickaxe project with agents and tools.
+
+## Getting Started
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Set up your environment variables (if needed):
+```bash
+cp .env.example .env
+```
+
+3. Build the project:
+```bash
+npm run build
+```
+
+4. Run the project:
+```bash
+npm start
+```
+
+## Development
+
+Run in development mode:
+```bash
+npm run dev
+```
+
+## Project Structure
+
+- `src/agents/{{kebabCase name}}/` - Main agent implementation
+- `src/agents/{{kebabCase name}}/tools/` - Tools used by the agent
+- `src/main.ts` - Entry point
+- `src/pickaxe-client.ts` - Pickaxe client configuration
+
+## Available Tools
+
+- **weather**: Get weather information for a city
+- **time**: Get current time for a city
+- **holiday**: Get current holiday for a country

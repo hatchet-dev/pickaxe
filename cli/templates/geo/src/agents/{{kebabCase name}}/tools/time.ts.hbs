@@ -1,0 +1,67 @@
+import { z } from "zod";
+import { pickaxe } from "@/pickaxe-client";
+
+interface TimeZoneResponse {
+  timezone: string;
+  offset: number;
+  datetime: string;
+}
+
+export const time = pickaxe.tool({
+  name: "time",
+  description: "Get the current time in a given city",
+  inputSchema: z.object({
+    city: z.string()
+  }),
+  outputSchema: z.object({
+    time: z.string()
+  }),
+  fn: async (input) => {
+    try {
+      // Get coordinates for the city
+      const geocodingUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(input.city)}&count=1`;
+      const geocodingResponse = await fetch(geocodingUrl);
+      const geocodingData = await geocodingResponse.json();
+
+      if (!geocodingData.results?.[0]) {
+        throw new Error(`Location '${input.city}' not found`);
+      }
+
+      const { latitude, longitude, name, timezone } = geocodingData.results[0];
+
+      // Get current time for the timezone
+      const timeUrl = `https://worldtimeapi.org/api/timezone/${timezone}`;
+      const timeResponse = await fetch(timeUrl);
+      
+      if (!timeResponse.ok) {
+        // Fallback to coordinate-based time if timezone lookup fails
+        const fallbackUrl = `https://api.timezonedb.com/v2.1/get-time-zone?key=demo&format=json&by=position&lat=${latitude}&lng=${longitude}`;
+        const fallbackResponse = await fetch(fallbackUrl);
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          const localTime = new Date(fallbackData.formatted);
+          return {
+            time: `${localTime.toLocaleString()} (${fallbackData.zoneName}) in ${name}`
+          };
+        }
+        
+        // Ultimate fallback to UTC
+        return {
+          time: `${new Date().toISOString()} (UTC) - Unable to get local time for ${name}`
+        };
+      }
+
+      const timeData: TimeZoneResponse = await timeResponse.json();
+      const localTime = new Date(timeData.datetime);
+      
+      return {
+        time: `${localTime.toLocaleString()} (${timeData.timezone}) in ${name}`
+      };
+    } catch (error) {
+      return {
+        time: `Unable to get time for ${input.city}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+});

@@ -6,20 +6,14 @@
 </a>
 </div>
 
-## Pickaxe: a Typescript library for building effective agents
+## Pickaxe: a Typescript library for building distributed agents
 
-Pickaxe is a library for building effective agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). Pickaxe agents are:
+Pickaxe is a library for building distributed agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). Pickaxe agents are:
 
-- **Durable by default** - all tools called by the agent are sent through a durable message boundary
 - **Distributed by default** - all agents and tools run across a fleet of machines, where scheduling is handled gracefully by Hatchet
-- **Support any execution pattern** - Pickaxe agents can be written as loops, scatter/gather workflows, or directed acyclic graphs
-- **Simple to scale** - Pickaxe agents allow simple configuration for retries, rate limiting, concurrency control, and much more
-
-## Is Pickaxe a framework?
-
-Yes and no. Pickaxe is **not opinionated** on how you should structure your LLM calls, business logic, prompts, or contexts. It is designed to be extended and modified -- for example, you could build your own agent library on top of Pickaxe.
-
-However, Pickaxe contains opinions on best practices for deploying agents into production, and lots of the decisions in the project are designed with these best practices in mind. See [agent best practices](#agent-best-practices) for more information.
+- **Scalable** - Pickaxe agents allow simple configuration for retries, rate limiting, concurrency control, and much more
+- **Durable by default** - all tools called by the agent are sent through a durable message boundary
+- **Agnostic to execution pattern** - Pickaxe agents can be written as loops, scatter/gather workflows, or directed acyclic graphs
 
 ## Get started
 
@@ -36,6 +30,12 @@ pickaxe create first-agent
 - **Toolbox** - a collection of tools that are available to an agent
 - **Tools** - a tool is a function available to an agent. A tool can call other tools, agents, or integrations.
 - **Integrations** - an integration is a third-party API call made by a tool
+
+## Is Pickaxe a framework?
+
+Yes and no. Pickaxe is **not opinionated** on how you should structure your LLM calls, business logic, prompts, or contexts. It is designed to be extended and modified -- for example, you could build your own agent library on top of Pickaxe.
+
+However, Pickaxe contains opinions on best practices for deploying agents into production, and lots of the decisions in the project are designed with these best practices in mind. See [agent best practices](#agent-best-practices) for more information.
 
 ## Agent Best Practices
 
