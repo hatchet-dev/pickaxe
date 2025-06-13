@@ -4,6 +4,7 @@
   <img width="200" alt="Hatchet Logo" src="./static/pickaxe_light.png">
 </picture>
 </a>
+</div>
 
 ## Pickaxe: a library for effective agents
 
