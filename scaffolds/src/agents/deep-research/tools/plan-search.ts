@@ -55,7 +55,7 @@ The queries should:
 3. Be specific enough to find relevant sources
 4. Use different angles or perspectives to ensure diverse information
 `,
-      model: openai("gpt-4.1-mini"),
+      model: pickaxe.defaultLanguageModel,
       schema: z.object({
         queries: z.array(z.string()),
         reasoning: z.string(),

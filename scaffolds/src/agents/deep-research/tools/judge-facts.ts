@@ -37,7 +37,7 @@ Consider:
 3. Are there any gaps in the information that would prevent a comprehensive answer?
 4. Are there any technical jargon words that are not defined in the facts that require additional research?
 `,
-      model: openai("gpt-4.1-mini"),
+      model: pickaxe.defaultLanguageModel,
       schema: z.object({
         hasEnoughFacts: z.boolean(),
         reason: z.string(),

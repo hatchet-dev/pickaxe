@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { generateObject } from "ai";
-import { openai } from "@ai-sdk/openai";
 import { pickaxe } from "@/client";
 
 const ExtractFactsInputSchema = z.object({
@@ -41,7 +40,7 @@ Source:
 
 Extract only factual statements that are directly relevant to the query. Each fact should be a complete, standalone statement.
 `,
-      model: openai("gpt-4.1-mini"),
+      model: pickaxe.defaultLanguageModel,
       schema: z.object({
         facts: z.array(z.string()),
       }),

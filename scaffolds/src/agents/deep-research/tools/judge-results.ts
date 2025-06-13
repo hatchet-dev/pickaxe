@@ -32,7 +32,7 @@ Answer:
 
 Completeness means that the answer includes all the information that is relevant to the query and that the answer is not missing any important details. Does the answer leave any new questions unanswered?
 `,
-      model: openai("gpt-4.1-mini"),
+      model: pickaxe.defaultLanguageModel,
       schema: z.object({
         reason: z.string(),
         isComplete: z.boolean(),

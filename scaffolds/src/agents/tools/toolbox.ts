@@ -58,25 +58,32 @@ class Toolbox {
     return [...this.props.tools.map(({ name }) => name), pick];
   }
 
-  async pick(prompt: string) {
-    return pick.run({ prompt, toolset: this.toolset });
+  async pick({prompt, maxSteps}: PickInput) {
+    return pick.run({ prompt, toolset: this.toolset, maxSteps });
   }
 }
-
 type PickInput = {
   prompt: string;
+  maxSteps?: number;
+};
+
+type PickInputWithToolset = PickInput & {
+  toolset: SerializedToolSet;
+};
+
+type PickOutput = {
   toolset: SerializedToolSet;
 };
 
 const pick = pickaxe.task({
   name: "pick",
   executionTimeout: "5m",
-  fn: async (input: PickInput) => {
+  fn: async (input: PickInputWithToolset) => {
     console.log(JSON.stringify(input.toolset, null, 2));
     const { steps } = await generateText({
-      model: openai("gpt-4o-mini"),
+      model: pickaxe.defaultLanguageModel,
       tools: input.toolset,
-      maxSteps: 5, // allow up to 5 steps
+      maxSteps: input.maxSteps ?? 1,
       prompt: input.prompt,
     });
 

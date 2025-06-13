@@ -78,7 +78,7 @@ Original query:
 ${input.text}
 """
 `,
-      model: openai("gpt-4.1-mini"),
+      model: pickaxe.defaultLanguageModel,
     });
 
     return {

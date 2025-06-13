@@ -1,5 +1,6 @@
 import Hatchet, { CreateDurableTaskWorkflow, CreateDurableTaskWorkflowOpts, CreateTaskWorkflow, CreateTaskWorkflowOpts, CreateWorkerOpts, InputType, OutputType, TaskWorkflowDeclaration, UnknownInputType, V0DurableContext } from "@hatchet-dev/typescript-sdk";
-import { HatchetClientOptions, ClientConfig } from "@hatchet-dev/typescript-sdk/clients/hatchet-client";
+import { HatchetClientOptions, ClientConfig as HatchetClientConfig } from "@hatchet-dev/typescript-sdk/clients/hatchet-client";
+import { LanguageModelV1 } from "ai";
 import { AxiosRequestConfig } from "axios";
 import { z } from "zod";
 
@@ -12,13 +13,23 @@ export interface ToolDeclaration<
   description: string;
 }
 
+export interface ClientConfig extends HatchetClientConfig {
+  defaultLanguageModel: LanguageModelV1;
+}
+
 export class Pickaxe extends Hatchet {
+  defaultLanguageModel: LanguageModelV1;
+  
   static init(config?: Partial<ClientConfig>, options?: HatchetClientOptions, axiosConfig?: AxiosRequestConfig) {
     return new Pickaxe(config, options, axiosConfig);
   }
 
   constructor(config?: Partial<ClientConfig>, options?: HatchetClientOptions, axiosConfig?: AxiosRequestConfig) {
+    if (!config?.defaultLanguageModel) {
+      throw new Error("defaultLanguageModel is required");  
+    }
     super(config, options, axiosConfig);
+    this.defaultLanguageModel = config.defaultLanguageModel;
   }
 
   async start(options?: CreateWorkerOpts) {
