@@ -1,24 +1,20 @@
 import { pickaxe } from "@/pickaxe-client";
 import { z } from "zod";
 
-type WeatherInput = {
-  city: string;
-};
+const WeatherInput = z.object({
+  city: z.string().describe("The city to get the weather for")
+});
 
-type WeatherOutput = {
-  weather: string;
-};
+const WeatherOutput = z.object({
+  weather: z.string()
+});
 
 export const weather = pickaxe.tool({
   name: "weather",
   description: "Get the weather in a given city",
-  inputSchema: z.object({
-    city: z.string()
-  }),
-  outputSchema: z.object({
-    weather: z.string()
-  }),
-  fn: async (input: WeatherInput): Promise<WeatherOutput> => {
+  inputSchema: WeatherInput,
+  outputSchema: WeatherOutput,
+  fn: async (input) => {
     return {
       weather: "sunny",
     };

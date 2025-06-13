@@ -3,7 +3,7 @@ import { HatchetClientOptions, ClientConfig as HatchetClientConfig } from "@hatc
 import { LanguageModelV1 } from "ai";
 import { AxiosRequestConfig } from "axios";
 import { z } from "zod";
-import { CreateToolboxProps, Toolbox, ToolDeclaration } from "./toolbox";
+import { CreateToolboxOpts, Toolbox, ToolDeclaration } from "./toolbox";
 
 
 export interface AgentDeclaration<
@@ -32,6 +32,7 @@ interface StartOptions extends CreateWorkerOpts {
 
 export class Pickaxe extends Hatchet {
   defaultLanguageModel: LanguageModelV1;
+  private toolboxes: Map<string, Toolbox> = new Map();
   
   static init(config?: Partial<ClientConfig>, options?: HatchetClientOptions, axiosConfig?: AxiosRequestConfig) {
     return new Pickaxe(config, options, axiosConfig);
@@ -148,8 +149,24 @@ export class Pickaxe extends Hatchet {
   }
 
 
-  toolbox(props: CreateToolboxProps) {
-    return new Toolbox(props, this);
+  /**
+   * Creates a new toolbox.
+   * @param options The toolbox configuration options
+   * @returns A Toolbox instance
+   */
+  toolbox(options: CreateToolboxOpts) {
+    const toolbox = new Toolbox(options, this);
+    // Store the toolbox with a generated key based on tool names
+    const toolboxKey = Array.from(options.tools).map(t => t.name).sort().join(':');
+    this.toolboxes.set(toolboxKey, toolbox);
+    return toolbox;
+  }
+
+  /**
+   * Gets a toolbox by its key (used internally)
+   */
+  _getToolbox(key: string): Toolbox | undefined {
+    return this.toolboxes.get(key);
   }
 }
 

@@ -24,9 +24,12 @@ export const simpleAgent = pickaxe.agent({
   outputSchema: SimpleAgentOutput,
   description: "A simple agent to get the weather and time",
   fn: async (input, ctx) => {
-    // const result = await simpleToolbox.pickRun(ctx, {
-    //   prompt: input.message,
-    // });
+    const result = await simpleToolbox.pickAndRun(ctx, {
+      prompt: input.message,
+    });
+
+
+    console.log(result);
 
     return {
       weather: "sunny",
