@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { generateText, jsonSchema, zodSchema } from "ai";
-// import { zodSchema } from "ai";
 import { DurableContext, TaskWorkflowDeclaration } from "@hatchet-dev/typescript-sdk";
 import { Pickaxe, Registerable } from "./pickaxe";
 import jsonSchemaToZod from "json-schema-to-zod";
@@ -14,8 +13,32 @@ export interface ToolDeclaration<
   description: string;
 }
 
-export interface CreateToolboxOpts {
-  tools: ReadonlyArray<ToolDeclaration<any, any>> | ToolDeclaration<any, any>[];
+// Helper to pull the right ToolDeclaration from T by its `name`
+type ToolByName<
+  T extends readonly ToolDeclaration<any, any>[],
+  N extends T[number]['name']
+> = Extract<T[number], { name: N }>;
+
+// Map over each name and give it the correct input/output
+type TransformersFor<
+  T extends readonly ToolDeclaration<any, any>[]
+> = {
+  [N in T[number]['name']]: (
+    output: z.infer<ToolByName<T, N>['outputSchema']>,
+    args: z.infer<ToolByName<T, N>['inputSchema']>
+  ) => Promise<any>;
+};
+
+type ToolResultMap<T extends readonly ToolDeclaration<any,any>[]> = {
+  [N in T[number]['name']]: {
+    name: N;
+    output: z.infer<Extract<T[number], {name: N}>['outputSchema']>;
+    args:   z.infer<Extract<T[number], {name: N}>['inputSchema']>;
+  }
+}[T[number]['name']];
+
+export interface CreateToolboxOpts<T extends ReadonlyArray<ToolDeclaration<any, any>>> {
+  tools: T;
 }
 
 export type ToolSet = {
@@ -50,11 +73,11 @@ type PickInput = {
   maxTools?: number;
 };
 
-export class Toolbox implements Registerable {
+export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>> implements Registerable {
   private toolboxKey: string;
   toolSetForAI: ToolSet;
 
-  constructor(private props: CreateToolboxOpts, private client: Pickaxe) {
+  constructor(private props: CreateToolboxOpts<T>, private client: Pickaxe) {
     // Generate a key for this toolbox based on tool names
     this.toolboxKey = Array.from(this.props.tools).map(t => t.name).sort().join(':');
 
@@ -81,6 +104,7 @@ export class Toolbox implements Registerable {
     return [...this.props.tools, pickToolFactory(this.client)];
   }
 
+
   async pick(ctx: DurableContext<any>, {prompt, maxTools}: PickInput) {
     const result = await ctx.runChild(pickToolFactory(this.client), { 
       prompt, 
@@ -94,24 +118,32 @@ export class Toolbox implements Registerable {
     })));  
   }
 
-  async pickAndRun(ctx: DurableContext<any>, {prompt, maxTools}: PickInput) {
-    const result = await this.pick(ctx, {prompt, maxTools});
+  async pickAndRun<
+    R extends TransformersFor<T>
+  >(
+    ctx: DurableContext<any>,
+    opts: PickInput,
+  ): Promise<ToolResultMap<T>[]> {
+    // 1) pick tools
+    const picked = await this.pick(ctx, opts);
 
-    const results = await ctx.bulkRunChildren(result.map((step) => ({
-      workflow: step.name,
-      input: step.input,
-    })));
+    // 2) run them
+    const results = await ctx.bulkRunChildren(
+      picked.map(({ name, input }) => ({ workflow: name, input }))
+    );
 
-
-    //
-
-    return results.map((result) => result);
+    // 4) zip back into the correctly typed union
+    return picked.map(({ name, input }, i) => ({
+      name,
+      output: results[i][name][name], // FIXME: this is a hack to get the output of the tool
+      args: input,
+    })) as ToolResultMap<T>[];
   }
 
   /**
    * Gets the original tool declarations (used internally by pick-tool)
    */
-  getTools(): ReadonlyArray<ToolDeclaration<any, any>> {
+  getTools(): T {
     return this.props.tools;
   }
 }

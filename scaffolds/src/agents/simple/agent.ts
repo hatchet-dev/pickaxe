@@ -9,8 +9,7 @@ const SimpleAgentInput = z.object({
 });
 
 const SimpleAgentOutput = z.object({
-  weather: z.string(),
-  time: z.string(),
+  message: z.string(),
 });
 
 export const simpleToolbox = pickaxe.toolbox({
@@ -24,21 +23,28 @@ export const simpleAgent = pickaxe.agent({
   outputSchema: SimpleAgentOutput,
   description: "A simple agent to get the weather and time",
   fn: async (input, ctx) => {
-    const result = await simpleToolbox.pickAndRun(ctx, {
+    const results = await simpleToolbox.pickAndRun(ctx, {
       prompt: input.message,
+      maxTools: 1,
     });
 
+    for (const result of results) {
+      if (result.name === "weather") {
+        return {
+          message: `The weather in ${result.args.city} is ${result.output}`,
+        };
+      }
 
-    console.log(result);
+      if (result.name === "time") {
+        return {
+          message: `The time in ${result.args.city} is ${result.output}`,
+        };
+      }
+    }
 
     return {
-      weather: "sunny",
-      time: "10:00",
+      message: "No tools were executed.",
     };
-    // return {
-    //   weather: result.weather as string,
-    //   time: result.time as string,
-    // };
   },
 });
 

@@ -32,7 +32,7 @@ interface StartOptions extends CreateWorkerOpts {
 
 export class Pickaxe extends Hatchet {
   defaultLanguageModel: LanguageModelV1;
-  private toolboxes: Map<string, Toolbox> = new Map();
+  private toolboxes: Map<string, Toolbox<any>> = new Map();
   
   static init(config?: Partial<ClientConfig>, options?: HatchetClientOptions, axiosConfig?: AxiosRequestConfig) {
     return new Pickaxe(config, options, axiosConfig);
@@ -107,28 +107,30 @@ export class Pickaxe extends Hatchet {
 
   /**
    * Creates a new tool with Zod schema validation.
+   * @template Name The literal type of the tool name
    * @template InputSchema The Zod schema for input validation
    * @template OutputSchema The Zod schema for output validation
    * @param options Tool configuration options including input and output schemas
    * @returns A ToolDeclaration instance
    */
   tool<
+    Name extends string,
     InputSchema extends z.ZodType,
     OutputSchema extends z.ZodType
   >(
     options: {
-      name: string;
+      name: Name;
       description: string;
       inputSchema: InputSchema;
       outputSchema: OutputSchema;
       fn: (input: z.infer<InputSchema>, ctx?: any) => Promise<z.infer<OutputSchema>>;
     } & Omit<CreateTaskWorkflowOpts<z.infer<InputSchema>, z.infer<OutputSchema>>, 'fn'>
-  ): ToolDeclaration<InputSchema, OutputSchema>;
+  ): ToolDeclaration<InputSchema, OutputSchema> & { name: Name };
 
   /**
    * Implementation of the tool method.
    */
-  tool(options: any): ToolDeclaration<any, any> {
+  tool(options: any): ToolDeclaration<any, any> & { name: string } {
     const { inputSchema, outputSchema, fn, description, ...rest } = options;
     
     // Wrap the function to validate input and output
@@ -145,7 +147,9 @@ export class Pickaxe extends Hatchet {
     declaration.outputSchema = outputSchema;
     declaration.description = description;
 
-    return declaration;
+    // Preserve the literal type of the `name` field through a cast so callers
+    // can discriminate on `name` later.
+    return declaration as typeof declaration & { name: typeof options.name };
   }
 
 
@@ -154,7 +158,7 @@ export class Pickaxe extends Hatchet {
    * @param options The toolbox configuration options
    * @returns A Toolbox instance
    */
-  toolbox(options: CreateToolboxOpts) {
+  toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>>(options: CreateToolboxOpts<T>): Toolbox<T> {
     const toolbox = new Toolbox(options, this);
     // Store the toolbox with a generated key based on tool names
     const toolboxKey = Array.from(options.tools).map(t => t.name).sort().join(':');
@@ -165,7 +169,7 @@ export class Pickaxe extends Hatchet {
   /**
    * Gets a toolbox by its key (used internally)
    */
-  _getToolbox(key: string): Toolbox | undefined {
+  _getToolbox(key: string): Toolbox<any> | undefined {
     return this.toolboxes.get(key);
   }
 }
