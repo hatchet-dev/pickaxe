@@ -1,0 +1,101 @@
+import axios from 'axios';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+
+export interface TemplateSource {
+  type: 'github' | 'local';
+  path: string;
+  ref?: string; // For GitHub: branch, tag, or commit
+}
+
+export interface TemplateFile {
+  name: string;
+  content: string;
+  path: string;
+}
+
+export class TemplateFetcher {
+  async fetchTemplate(source: TemplateSource): Promise<TemplateFile[]> {
+    switch (source.type) {
+      case 'github':
+        return this.fetchFromGitHub(source);
+      case 'local':
+        return this.fetchFromLocal(source);
+      default:
+        throw new Error(`Unsupported template source type: ${(source as any).type}`);
+    }
+  }
+
+  private async fetchFromGitHub(source: TemplateSource): Promise<TemplateFile[]> {
+    const { path: repoPath, ref = 'main' } = source;
+    const [owner, repo, ...pathParts] = repoPath.split('/');
+    const templatePath = pathParts.join('/');
+    
+    if (!owner || !repo) {
+      throw new Error('GitHub path must be in format: owner/repo/path/to/template');
+    }
+
+    try {
+      // Get directory contents from GitHub API
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${templatePath}?ref=${ref}`;
+      const response = await axios.get(apiUrl);
+      
+      const files: TemplateFile[] = [];
+      const items = Array.isArray(response.data) ? response.data : [response.data];
+      
+      for (const item of items) {
+        if (item.type === 'file') {
+          // Fetch file content
+          const fileResponse = await axios.get(item.download_url);
+          files.push({
+            name: item.name,
+            content: fileResponse.data,
+            path: item.path,
+          });
+        }
+      }
+      
+      return files;
+    } catch (error) {
+      throw new Error(`Failed to fetch template from GitHub: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async fetchFromLocal(source: TemplateSource): Promise<TemplateFile[]> {
+    const templatePath = path.resolve(source.path);
+    
+    try {
+      const stat = await fs.stat(templatePath);
+      const files: TemplateFile[] = [];
+      
+      if (stat.isDirectory()) {
+        const entries = await fs.readdir(templatePath, { withFileTypes: true });
+        
+        for (const entry of entries) {
+          if (entry.isFile()) {
+            const filePath = path.join(templatePath, entry.name);
+            const content = await fs.readFile(filePath, 'utf-8');
+            
+            files.push({
+              name: entry.name,
+              content,
+              path: filePath,
+            });
+          }
+        }
+      } else {
+        // Single file
+        const content = await fs.readFile(templatePath, 'utf-8');
+        files.push({
+          name: path.basename(templatePath),
+          content,
+          path: templatePath,
+        });
+      }
+      
+      return files;
+    } catch (error) {
+      throw new Error(`Failed to fetch template from local path: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+}

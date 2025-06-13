@@ -1,0 +1,32 @@
+/**
+ * {{pascalCase name}} Agent
+ * {{description}}
+ * 
+ * Created: {{currentDate}}
+ */
+
+export interface {{pascalCase name}}Agent {
+  name: string;
+  description: string;
+  execute(input: string): Promise<string>;
+}
+
+export class {{pascalCase name}} implements {{pascalCase name}}Agent {
+  public readonly name: string;
+  public readonly description: string;
+
+  constructor() {
+    this.name = '{{name}}';
+    this.description = '{{description}}';
+  }
+
+  async execute(input: string): Promise<string> {
+    // TODO: Implement agent logic here
+    console.log(`Executing {{pascalCase name}} agent with input: ${input}`);
+    
+    // Placeholder implementation
+    return `{{pascalCase name}} processed: ${input}`;
+  }
+}
+
+export default {{pascalCase name}};
