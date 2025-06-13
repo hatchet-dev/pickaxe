@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { pickaxe } from "../client";
+import { pickaxe } from "@/client";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 
@@ -20,16 +20,17 @@ export const SummarizeInputSchema = z.object({
   ),
 });
 
-export type SummarizeInput = z.infer<typeof SummarizeInputSchema>;
-
-export type SummarizeOutput = {
-  summary: string;
-};
+const SummarizeOutputSchema = z.object({
+  summary: z.string(),
+});
 
 export const summarize = pickaxe.tool({
   name: "summarize",
   executionTimeout: "5m",
-  fn: async (input: SummarizeInput, ctx): Promise<SummarizeOutput> => {
+  description: "Summarize a text based on a set of facts",
+  inputSchema: SummarizeInputSchema,
+  outputSchema: SummarizeOutputSchema,
+  fn: async (input, ctx) => {
     // Create a map of source indices to source information for easy lookup
     const sourceMap = new Map(
       input.sources.map((source) => [source.index, source])

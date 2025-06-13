@@ -1,26 +1,27 @@
 import { z } from "zod";
 import { generateText as aiGenerateText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { pickaxe } from "../client";
+import { pickaxe } from "@/client";
 
 export const SearchInputSchema = z.object({
   query: z.string(),
 });
 
-export type SearchInput = z.infer<typeof SearchInputSchema>;
-
-export type SearchOutput = {
-  query: string;
-  sources: {
-    url: string;
-    title?: string;
-  }[];
-};
+const SearchOutputSchema = z.object({
+  query: z.string(),
+  sources: z.array(z.object({
+    url: z.string(),
+    title: z.string().optional(),
+  })),
+});
 
 export const search = pickaxe.tool({
   name: "search",
   executionTimeout: "5m",
-  fn: async (input: SearchInput, ctx): Promise<SearchOutput> => {
+  description: "Search the web for information about a topic",
+  inputSchema: SearchInputSchema,
+  outputSchema: SearchOutputSchema,
+  fn: async (input, ctx) => {
     const validatedInput = SearchInputSchema.parse(input);
 
     const result = await aiGenerateText({

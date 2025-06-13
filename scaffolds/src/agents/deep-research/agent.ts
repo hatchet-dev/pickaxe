@@ -1,6 +1,6 @@
-import { pickaxe } from "../../client";
-import { extractFacts, judgeFacts, judgeResults, planSearch, summarize, search } from "../../tools";
-import { websiteToMd } from "../../tools/website-to-md";
+import { pickaxe } from "@/client";
+import { extractFacts, judgeFacts, judgeResults, planSearch, summarize, search } from "./tools";
+import { websiteToMd } from "./tools/website-to-md";
 
 
 type Message = {

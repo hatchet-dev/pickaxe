@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { generateText as aiGenerateText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { pickaxe } from "../client";
+import { pickaxe } from "@/client";
 
 const WebsiteToMdxInputSchema = z.object({
   url: z.string().url(),
@@ -9,20 +9,20 @@ const WebsiteToMdxInputSchema = z.object({
   title: z.string().optional(),
 });
 
-type WebsiteToMdxInput = z.infer<typeof WebsiteToMdxInputSchema>;
-
-type WebsiteToMdxOutput = {
-  index: number;
-  title: string;
-  url: string;
-  markdown: string;
-};
-
+const WebsiteToMdxOutputSchema = z.object({
+  index: z.number(),
+  title: z.string(),
+  url: z.string(),
+  markdown: z.string(),
+});
 
 export const websiteToMd = pickaxe.tool({
   name: "website-to-md",
   executionTimeout: "5m",
-  fn: async (input: WebsiteToMdxInput, ctx): Promise<WebsiteToMdxOutput> => {
+  description: "Convert a webpage to clean, well-formatted Markdown",
+  inputSchema: WebsiteToMdxInputSchema,
+  outputSchema: WebsiteToMdxOutputSchema,
+  fn: async (input, ctx) => {
     const validatedInput = WebsiteToMdxInputSchema.parse(input);
 
     const result = await aiGenerateText({

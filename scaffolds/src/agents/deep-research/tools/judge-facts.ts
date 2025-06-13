@@ -1,25 +1,26 @@
 import { z } from "zod";
 import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { pickaxe } from "../client";
+import { pickaxe } from "@/client";
 
 const JudgeFactsInputSchema = z.object({
   query: z.string(),
   facts: z.array(z.string()),
 });
 
-type JudgeFactsInput = z.infer<typeof JudgeFactsInputSchema>;
-
-type JudgeFactsOutput = {
-  hasEnoughFacts: boolean;
-  reason: string;
-  missingAspects: string[];
-};
+const JudgeFactsOutputSchema = z.object({
+  hasEnoughFacts: z.boolean(),
+  reason: z.string(),
+  missingAspects: z.array(z.string()),
+});
 
 export const judgeFacts = pickaxe.tool({
   name: "judge-facts",
   executionTimeout: "5m",
-  fn: async (input: JudgeFactsInput): Promise<JudgeFactsOutput> => {
+  description: "Judge if we have enough facts to comprehensively answer a query",
+  inputSchema: JudgeFactsInputSchema,
+  outputSchema: JudgeFactsOutputSchema,
+  fn: async (input) => {
     const validatedInput = JudgeFactsInputSchema.parse(input);
 
     const result = await generateObject({

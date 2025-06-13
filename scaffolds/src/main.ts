@@ -1,4 +1,4 @@
-import { pickaxe } from "./client";
+import { pickaxe } from "@/client";
 
 async function main() {
   await pickaxe.start();

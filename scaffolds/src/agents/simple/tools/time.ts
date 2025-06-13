@@ -1,21 +1,18 @@
 import { z } from "zod";
-import { pickaxe } from "../../../client";
+import { pickaxe } from "@/client";
 
-const TimeInputSchema = z.object({
-  city: z.string(),
-});
-
-type TimeInput = z.infer<typeof TimeInputSchema>;
-
-type TimeOutput = {
-  time: string;
-};
-
-export default pickaxe.tool({
+export const time = pickaxe.tool({
   name: "time",
-  fn: async (input: TimeInput): Promise<TimeOutput> => {
+  description: "Get the current time in a given city",
+  inputSchema: z.object({
+    city: z.string()
+  }),
+  outputSchema: z.object({
+    time: z.string()
+  }),
+  fn: async (input) => {
     return {
-      time: new Date().toISOString(),
+      time: new Date().toISOString()
     };
-  },
+  }
 });

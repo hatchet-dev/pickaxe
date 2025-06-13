@@ -1,24 +1,25 @@
 import { z } from "zod";
 import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { pickaxe } from "../client";
+import { pickaxe } from "@/client";
 
 const JudgeResultsInputSchema = z.object({
   query: z.string(),
   result: z.string(),
 });
 
-type JudgeResultsInput = z.infer<typeof JudgeResultsInputSchema>;
-
-type JudgeResultsOutput = {
-  reason: string;
-  isComplete: boolean;
-};
+const JudgeResultsOutputSchema = z.object({
+  reason: z.string(),
+  isComplete: z.boolean(),
+});
 
 export const judgeResults = pickaxe.tool({
   name: "judge-results",
   executionTimeout: "5m",
-  fn: async (input: JudgeResultsInput): Promise<JudgeResultsOutput> => {
+  description: "Judge the completeness of an answer to a query",
+  inputSchema: JudgeResultsInputSchema,
+  outputSchema: JudgeResultsOutputSchema,
+  fn: async (input) => {
     const validatedInput = JudgeResultsInputSchema.parse(input);
 
     const result = await generateObject({

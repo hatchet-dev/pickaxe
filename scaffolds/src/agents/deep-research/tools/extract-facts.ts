@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { pickaxe } from "../client";
+import { pickaxe } from "@/client";
 
 const ExtractFactsInputSchema = z.object({
   source: z.string(),
@@ -13,21 +13,22 @@ const ExtractFactsInputSchema = z.object({
   }),
 });
 
-type ExtractFactsInput = z.infer<typeof ExtractFactsInputSchema>;
+const Fact = z.object({
+  text: z.string(),
+  sourceIndex: z.number(),
+});
 
-type Fact = {
-  text: string;
-  sourceIndex: number;
-};
-
-type ExtractFactsOutput = {
-  facts: Fact[];
-};
+const ExtractFactsOutputSchema = z.object({
+  facts: z.array(Fact),
+});
 
 export const extractFacts = pickaxe.tool({
   name: "extract-facts",
+  description: "Extract relevant facts from a source",
+  inputSchema: ExtractFactsInputSchema,
+  outputSchema: ExtractFactsOutputSchema,
   executionTimeout: "5m",
-  fn: async (input: ExtractFactsInput): Promise<ExtractFactsOutput> => {
+  fn: async (input) => {
     const validatedInput = ExtractFactsInputSchema.parse(input);
 
     const result = await generateObject({

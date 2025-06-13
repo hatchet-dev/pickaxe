@@ -1,7 +1,16 @@
-
 import Hatchet, { CreateDurableTaskWorkflow, CreateDurableTaskWorkflowOpts, CreateTaskWorkflow, CreateTaskWorkflowOpts, CreateWorkerOpts, InputType, OutputType, TaskWorkflowDeclaration, UnknownInputType, V0DurableContext } from "@hatchet-dev/typescript-sdk";
 import { HatchetClientOptions, ClientConfig } from "@hatchet-dev/typescript-sdk/clients/hatchet-client";
 import { AxiosRequestConfig } from "axios";
+import { z } from "zod";
+
+export interface ToolDeclaration<
+  InputSchema extends z.ZodType,
+  OutputSchema extends z.ZodType
+> extends TaskWorkflowDeclaration<z.infer<InputSchema>, z.infer<OutputSchema>> {
+  inputSchema: InputSchema;
+  outputSchema: OutputSchema;
+  description: string;
+}
 
 export class Pickaxe extends Hatchet {
   static init(config?: Partial<ClientConfig>, options?: HatchetClientOptions, axiosConfig?: AxiosRequestConfig) {
@@ -61,44 +70,46 @@ export class Pickaxe extends Hatchet {
 
 
   /**
-   * Creates a new tool.
-   * Types can be explicitly specified as generics or inferred from the function signature.
-   * @template I The input type for the tool
-   * @template O The output type of the tool
-   * @param options Task configuration options
-   * @returns A TaskWorkflowDeclaration instance
-   */
-  tool<I extends InputType = UnknownInputType, O extends OutputType = void>(
-    options: CreateTaskWorkflowOpts<I, O>
-  ): TaskWorkflowDeclaration<I, O>;
-
-  /**
-   * Creates a new tool workflow with types inferred from the function parameter.
-   * @template Fn The type of the task function with input and output extending JsonObject
-   * @param options Task configuration options with function that defines types
-   * @returns A TaskWorkflowDeclaration instance with inferred types
+   * Creates a new tool with Zod schema validation.
+   * @template InputSchema The Zod schema for input validation
+   * @template OutputSchema The Zod schema for output validation
+   * @param options Tool configuration options including input and output schemas
+   * @returns A ToolDeclaration instance
    */
   tool<
-    Fn extends (input: I, ctx?: any) => O | Promise<O>,
-    I extends InputType = Parameters<Fn>[0] | UnknownInputType,
-    O extends OutputType = ReturnType<Fn> extends Promise<infer P>
-      ? P extends OutputType
-        ? P
-        : void
-      : ReturnType<Fn> extends OutputType
-        ? ReturnType<Fn>
-        : void,
+    InputSchema extends z.ZodType,
+    OutputSchema extends z.ZodType
   >(
     options: {
-      fn: Fn;
-    } & Omit<CreateTaskWorkflowOpts<I, O>, 'fn'>
-  ): TaskWorkflowDeclaration<I, O>;
+      name: string;
+      description: string;
+      inputSchema: InputSchema;
+      outputSchema: OutputSchema;
+      fn: (input: z.infer<InputSchema>, ctx?: any) => Promise<z.infer<OutputSchema>>;
+    } & Omit<CreateTaskWorkflowOpts<z.infer<InputSchema>, z.infer<OutputSchema>>, 'fn'>
+  ): ToolDeclaration<InputSchema, OutputSchema>;
 
   /**
    * Implementation of the tool method.
    */
-  tool(options: any): TaskWorkflowDeclaration<any, any> {
-    return CreateTaskWorkflow(options, this);
+  tool(options: any): ToolDeclaration<any, any> {
+    const { inputSchema, outputSchema, fn, description, ...rest } = options;
+    
+    // Wrap the function to validate input and output
+    const wrappedFn = async (input: any, ctx?: any) => {
+      const validatedInput = inputSchema.parse(input);
+      const result = await fn(validatedInput, ctx);
+      return outputSchema.parse(result);
+    };
+
+    const declaration = CreateTaskWorkflow({ ...rest, fn: wrappedFn }, this) as ToolDeclaration<any, any>;
+    
+    // Add schema information to the declaration
+    declaration.inputSchema = inputSchema;
+    declaration.outputSchema = outputSchema;
+    declaration.description = description;
+
+    return declaration;
   }
 }
 

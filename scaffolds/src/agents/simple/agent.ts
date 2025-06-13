@@ -1,6 +1,6 @@
-import { pickaxe } from "../../client";
-import weather from "./tools/weather";
-import time from "./tools/time";
+import { pickaxe } from "@/client";
+import { weather } from "./tools/weather";
+import { time } from "./tools/time";
 
 
 type SimpleAgentInput = {

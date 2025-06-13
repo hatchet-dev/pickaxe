@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { pickaxe } from "../client";
+import { pickaxe } from "@/client";
 
 export const PlanSearchInputSchema = z.object({
   query: z.string(),
@@ -9,17 +9,18 @@ export const PlanSearchInputSchema = z.object({
   missingAspects: z.array(z.string()).optional(),
 });
 
-export type PlanSearchInput = z.infer<typeof PlanSearchInputSchema>;
-
-export type PlanSearchOutput = {
-  queries: string[];
-  reasoning: string;
-};
+const PlanSearchOutputSchema = z.object({
+  queries: z.array(z.string()),
+  reasoning: z.string(),
+});
 
 export const planSearch = pickaxe.tool({
   name: "plan-search",
   executionTimeout: "5m",
-  fn: async (input: PlanSearchInput): Promise<PlanSearchOutput> => {
+  description: "Plan search queries to find information about a topic",
+  inputSchema: PlanSearchInputSchema,
+  outputSchema: PlanSearchOutputSchema,
+  fn: async (input) => {
     const validatedInput = PlanSearchInputSchema.parse(input);
 
     const result = await generateObject({
