@@ -7,7 +7,11 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      // NOTE: also set in jest.config.ts
+      "@hatchet-dev/pickaxe/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*", "../scaffold/src/tools/toolbox.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
