@@ -23,23 +23,20 @@ export const simpleAgent = pickaxe.agent({
   outputSchema: SimpleAgentOutput,
   description: "A simple agent to get the weather and time",
   fn: async (input, ctx) => {
-    const results = await simpleToolbox.pickAndRun(ctx, {
+    const result = await simpleToolbox.pickAndRun(ctx, {
       prompt: input.message,
-      maxTools: 1,
     });
 
-    for (const result of results) {
-      if (result.name === "weather") {
-        return {
-          message: `The weather in ${result.args.city} is ${result.output}`,
-        };
-      }
+    if (result.name === "weather") {
+      return {
+        message: `The weather in ${result.args.city} is ${result.output}`,
+      };
+    }
 
-      if (result.name === "time") {
-        return {
-          message: `The time in ${result.args.city} is ${result.output}`,
-        };
-      }
+    if (result.name === "time") {
+      return {
+        message: `The time in ${result.args.city} is ${result.output}`,
+      };
     }
 
     return {

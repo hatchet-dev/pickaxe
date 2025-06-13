@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { generateText, jsonSchema, zodSchema } from "ai";
-import { DurableContext, TaskWorkflowDeclaration } from "@hatchet-dev/typescript-sdk";
+import { Context, DurableContext, TaskWorkflowDeclaration } from "@hatchet-dev/typescript-sdk";
 import { Pickaxe, Registerable } from "./pickaxe";
 import jsonSchemaToZod from "json-schema-to-zod";
 
@@ -37,7 +37,13 @@ type ToolResultMap<T extends readonly ToolDeclaration<any,any>[]> = {
   }
 }[T[number]['name']];
 
+/**
+ * Options used when creating a `Toolbox` instance.
+ *
+ * @typeParam T - Immutable array of `ToolDeclaration`s that will populate the toolbox.
+ */
 export interface CreateToolboxOpts<T extends ReadonlyArray<ToolDeclaration<any, any>>> {
+  /** Array of tool declarations to register on the toolbox. */
   tools: T;
 }
 
@@ -73,10 +79,26 @@ type PickInput = {
   maxTools?: number;
 };
 
+/**
+ * Runtime helper that exposes a collection of Hatchet workflows as "tools" which can be
+ * automatically selected and executed by a language model using the OpenAI function-calling interface.
+ *
+ * The class wires the supplied tool declarations into the Hatchet runtime and also
+ * registers an internal `pick-tool` workflow that decides—at execution time—what tool(s)
+ * should be invoked to satisfy a natural-language prompt.
+ *
+ * @typeParam T - Immutable array of `ToolDeclaration`s that are made available in this toolbox.
+ */
 export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>> implements Registerable {
   private toolboxKey: string;
   toolSetForAI: ToolSet;
 
+  /**
+   * Creates a new `Toolbox`.
+   *
+   * @param props  - Toolbox construction options containing the tool declarations.
+   * @param client - The `Pickaxe` client used to register and execute workflows.
+   */
   constructor(private props: CreateToolboxOpts<T>, private client: Pickaxe) {
     // Generate a key for this toolbox based on tool names
     this.toolboxKey = Array.from(this.props.tools).map(t => t.name).sort().join(':');
@@ -100,12 +122,27 @@ export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>> impleme
     );
   }
 
+  /**
+   * Implements the `Registerable` interface so the toolbox and its supporting workflows
+   * can be registered with Hatchet.
+   *
+   * @returns All user-supplied tool declarations plus the internal `pick-tool` workflow.
+   */
   get register(): TaskWorkflowDeclaration<any, any>[] {
     return [...this.props.tools, pickToolFactory(this.client)];
   }
 
-
-  async pick(ctx: DurableContext<any>, {prompt, maxTools}: PickInput) {
+  /**
+   * Uses the language model to choose up to `maxTools` tools from this toolbox that best satisfy
+   * the provided prompt. Only the selection step is performed—no tool execution happens here.
+   *
+   * @param ctx      - Durable context provided by the Hatchet runtime.
+   * @param prompt   - Natural-language description of what the caller wants to achieve.
+   * @param [maxTools] - Optional upper bound on how many tools may be selected (defaults to 1).
+   *
+   * @returns An array containing the chosen tool names together with the generated input arguments.
+   */
+  async pick(ctx: DurableContext<any> | Context<any>, {prompt, maxTools}: PickInput) {
     const result = await ctx.runChild(pickToolFactory(this.client), { 
       prompt, 
       toolboxKey: this.toolboxKey,
@@ -118,12 +155,46 @@ export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>> impleme
     })));  
   }
 
+  /**
+   * Convenience method that first runs `pick` and then immediately executes the chosen tool(s).
+   *
+   * When `maxTools` is omitted or set to `1` the return value is a single `ToolResultMap` object.
+   * For values greater than `1` an array of `ToolResultMap` objects is returned in the order the
+   * tools were selected.
+   *
+   * @typeParam R - Inferred map of tool names to transformer functions derived from the toolbox.
+   * @param ctx  - Durable context provided by the Hatchet runtime.
+   * @param opts - Same input accepted by `pick`; the `maxTools` property determines the shape of the response.
+   */
   async pickAndRun<
     R extends TransformersFor<T>
   >(
-    ctx: DurableContext<any>,
+    ctx: DurableContext<any> | Context<any>,
+    opts: Omit<PickInput, 'maxTools'> & { maxTools?: undefined }
+  ): Promise<ToolResultMap<T>>;
+
+  async pickAndRun<
+    R extends TransformersFor<T>
+  >(
+    ctx: DurableContext<any> | Context<any>,
+    opts: PickInput & { maxTools: 1 }
+  ): Promise<ToolResultMap<T>>;
+
+  // Overload: `maxTools` > 1  ➜ array of results
+  async pickAndRun<
+    R extends TransformersFor<T>
+  >(
+    ctx: DurableContext<any> | Context<any>,
+    opts: PickInput & { maxTools: number }
+  ): Promise<ToolResultMap<T>[]>;
+
+  // Implementation
+  async pickAndRun<
+    R extends TransformersFor<T>
+  >(
+    ctx: DurableContext<any> | Context<any>,
     opts: PickInput,
-  ): Promise<ToolResultMap<T>[]> {
+  ): Promise<any> {
     // 1) pick tools
     const picked = await this.pick(ctx, opts);
 
@@ -132,12 +203,19 @@ export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>> impleme
       picked.map(({ name, input }) => ({ workflow: name, input }))
     );
 
-    // 4) zip back into the correctly typed union
-    return picked.map(({ name, input }, i) => ({
+    // 3) zip back into the correctly typed union
+    const zipped = picked.map(({ name, input }, i) => ({
       name,
       output: results[i][name][name], // FIXME: this is a hack to get the output of the tool
       args: input,
     })) as ToolResultMap<T>[];
+
+    // 4) Return single object or array based on opts.maxTools
+    if (opts.maxTools === undefined || opts.maxTools === 1) {
+      return zipped[0];
+    }
+
+    return zipped;
   }
 
   /**
