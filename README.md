@@ -30,7 +30,7 @@ When building with Pickaxe, you are expected to:
 Getting started is as easy as two commands:
 
 ```
-pnpm i -g @hatchet-dev/pickaxe
+pnpm i -g @hatchet-dev/pickaxe-cli
 pickaxe create
 ```
 

@@ -1,6 +1,6 @@
 {
-  "name": "pickaxe",
-  "version": "1.0.0",
+  "name": "@hatchet-dev/pickaxe-cli",
+  "version": "0.0.2",
   "main": "dist/index.js",
   "bin": {
     "pickaxe": "./dist/index.js"
