@@ -1,13 +1,23 @@
 import { z } from "zod";
 import { generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
 import { zodSchema } from "ai";
 import { pickaxe } from "@/client";
-import { ToolDeclaration } from "@hatchet-dev/pickaxe/src";
+import { ToolDeclaration, DurableContext, Registerable, TaskWorkflowDeclaration } from "@hatchet-dev/pickaxe/src";
 
 export interface ToolboxProps {
-  tools: ToolDeclaration<any, any>[];
+  tools: ReadonlyArray<ToolDeclaration<any, any>> | ToolDeclaration<any, any>[];
 }
+
+// Create a type helper to extract output types from declarations
+type InferToolOutputs<T> = T extends ReadonlyArray<infer U> | Array<infer U> 
+  ? U extends ToolDeclaration<any, any>
+    ? {
+      [K in U['name']]?: U extends { name: K, outputSchema: z.ZodType<infer R> }
+        ? R
+        : never;
+    }
+    : never
+  : never;
 
 export type ToolSet = {
   [key: string]: {
@@ -29,17 +39,31 @@ Not used for provider-defined tools.
 type SerializedToolSet = {
   [key: string]: {
     typeName: string;
-    description: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    parameters: any; // TODO ReturnType<typeof zodToJsonSchema>;
+    description?: string;
+    parameters: any;
   };
 };
 
-class Toolbox {
+/**
+ * Input for the pick workflow.
+ */
+type PickInput = {
+  /**
+   * The prompt to use for the pick workflow.
+   */
+  prompt: string;
+
+  /**
+   * The maximum number of tools to allow the pick workflow to take.
+   */
+  maxTools?: number;
+};
+
+class Toolbox implements Registerable {
   toolset: SerializedToolSet;
 
   constructor(private props: ToolboxProps) {
-    this.toolset = this.props.tools.reduce<SerializedToolSet>(
+    this.toolset = Array.from(this.props.tools).reduce<SerializedToolSet>(
       (acc, { name, description, inputSchema }) => {
         return {
           ...acc,
@@ -54,18 +78,40 @@ class Toolbox {
     );
   }
 
-  get register() {
-    return [...this.props.tools.map(({ name }) => name), pick];
+  register(): TaskWorkflowDeclaration<any, any>[] {
+    return [...this.props.tools, pick];
   }
 
-  async pick({prompt, maxSteps}: PickInput) {
-    return pick.run({ prompt, toolset: this.toolset, maxSteps });
+  async pick(ctx: DurableContext<any>, {prompt, maxTools}: PickInput) {
+    const result = await ctx.runChild(pick, { prompt, toolset: this.toolset, maxTools });
+    return result.steps;
+  }
+
+  async pickRun(
+    ctx: DurableContext<any>, 
+    {prompt, maxTools}: PickInput
+  ): Promise<InferToolOutputs<typeof this.props.tools>> {
+    const result = await ctx.runChild(pick, { prompt, toolset: this.toolset, maxTools });
+
+    const toolResults = await ctx.bulkRunChildren(result.steps.map((step) => {
+      const toolCall = step[0];
+      return {
+        workflow: toolCall.toolName,
+        input: toolCall.args,
+      };
+    }));
+
+    // Create a map of tool names to their results
+    const resultMap = {} as InferToolOutputs<typeof this.props.tools>;
+    toolResults.forEach((result) => {
+      const toolCall = result.steps[0][0];
+      resultMap[toolCall.toolName as keyof InferToolOutputs<typeof this.props.tools>] = result;
+    });
+
+    return resultMap;
   }
 }
-type PickInput = {
-  prompt: string;
-  maxSteps?: number;
-};
+
 
 type PickInputWithToolset = PickInput & {
   toolset: SerializedToolSet;
@@ -83,7 +129,7 @@ const pick = pickaxe.task({
     const { steps } = await generateText({
       model: pickaxe.defaultLanguageModel,
       tools: input.toolset,
-      maxSteps: input.maxSteps ?? 1,
+      maxSteps: input.maxTools ?? 1,
       prompt: input.prompt,
     });
 

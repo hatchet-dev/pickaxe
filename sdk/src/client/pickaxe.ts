@@ -1,8 +1,10 @@
-import Hatchet, { CreateDurableTaskWorkflow, CreateDurableTaskWorkflowOpts, CreateTaskWorkflow, CreateTaskWorkflowOpts, CreateWorkerOpts, InputType, OutputType, TaskWorkflowDeclaration, UnknownInputType, V0DurableContext } from "@hatchet-dev/typescript-sdk";
+import Hatchet, { CreateDurableTaskWorkflow, CreateDurableTaskWorkflowOpts, CreateTaskWorkflow, CreateTaskWorkflowOpts, CreateWorkerOpts, DurableContext, InputType, OutputType, TaskWorkflowDeclaration, UnknownInputType, V0DurableContext } from "@hatchet-dev/typescript-sdk";
 import { HatchetClientOptions, ClientConfig as HatchetClientConfig } from "@hatchet-dev/typescript-sdk/clients/hatchet-client";
 import { LanguageModelV1 } from "ai";
 import { AxiosRequestConfig } from "axios";
 import { z } from "zod";
+
+
 
 export interface ToolDeclaration<
   InputSchema extends z.ZodType,
@@ -13,8 +15,30 @@ export interface ToolDeclaration<
   description: string;
 }
 
+export interface AgentDeclaration<
+  InputSchema extends z.ZodType,
+  OutputSchema extends z.ZodType
+> extends TaskWorkflowDeclaration<z.infer<InputSchema>, z.infer<OutputSchema>> {
+  inputSchema: InputSchema;
+  outputSchema: OutputSchema;
+  description: string;
+}
+
 export interface ClientConfig extends HatchetClientConfig {
   defaultLanguageModel: LanguageModelV1;
+}
+
+export interface Registerable {
+  register: () => TaskWorkflowDeclaration<any, any>[];
+}
+
+
+interface StartOptions extends CreateWorkerOpts {
+  agents?: AgentDeclaration<any, any>[];
+  toolboxes?: Registerable[];
+  tools?: ToolDeclaration<any, any>[];
+  workflows?: TaskWorkflowDeclaration<any, any>[];
+  tasks?: TaskWorkflowDeclaration<any, any>[];
 }
 
 export class Pickaxe extends Hatchet {
@@ -32,51 +56,69 @@ export class Pickaxe extends Hatchet {
     this.defaultLanguageModel = config.defaultLanguageModel;
   }
 
-  async start(options?: CreateWorkerOpts) {
-    const worker = await this.worker('pickaxe-worker', options);
+  async start(options: StartOptions) {
+
+    const { agents, toolboxes, tools, workflows, tasks, ...rest } = options;
+
+    const registerables = [
+      ...(agents ?? []),
+      ...(toolboxes?.flatMap((registerable) => registerable.register()) ?? []),
+      ...(tools ?? []),
+      ...(workflows ?? []),
+      ...(tasks ?? []),
+    ];
+
+    // deduplicate by name
+    const deduplicatedRegisterables = registerables.filter((registerable, index, self) =>
+      index === self.findIndex((t) => t.name === registerable.name)
+    );
+
+    const worker = await this.worker('pickaxe-worker', {
+     ...rest,
+     workflows: deduplicatedRegisterables.flatMap((registerable) => registerable),
+    });
+
     return worker.start();
   }
 
   
   /**
-   * Creates a new agent.
-   * Types can be explicitly specified as generics or inferred from the function signature.
-   * @template I The input type for the durable task
-   * @template O The output type of the durable task
-   * @param options Durable task configuration options
-   * @returns A TaskWorkflowDeclaration instance for a durable task
-   */
-  agent<I extends InputType, O extends OutputType>(
-    options: CreateDurableTaskWorkflowOpts<I, O>
-  ): TaskWorkflowDeclaration<I, O>;
-
-  /**
-   * Creates a new durable task workflow with types inferred from the function parameter.
-   * @template Fn The type of the durable task function with input and output extending JsonObject
-   * @param options Durable task configuration options with function that defines types
-   * @returns A TaskWorkflowDeclaration instance with inferred types
+   * Creates a new agent with Zod schema validation.
+   * @template InputSchema The Zod schema for input validation
+   * @template OutputSchema The Zod schema for output validation
+   * @param options Agent configuration options including input and output schemas
+   * @returns An AgentDeclaration instance
    */
   agent<
-    Fn extends (input: I, ctx: V0DurableContext<I>) => O | Promise<O>,
-    I extends InputType = Parameters<Fn>[0],
-    O extends OutputType = ReturnType<Fn> extends Promise<infer P>
-      ? P extends OutputType
-        ? P
-        : void
-      : ReturnType<Fn> extends OutputType
-        ? ReturnType<Fn>
-        : void,
+    InputSchema extends z.ZodType,
+    OutputSchema extends z.ZodType
   >(
     options: {
-      fn: Fn;
-    } & Omit<CreateDurableTaskWorkflowOpts<I, O>, 'fn'>
-  ): TaskWorkflowDeclaration<I, O>;
+      name: string;
+      description: string;
+      inputSchema: InputSchema;
+      outputSchema: OutputSchema;
+      fn: (input: z.infer<InputSchema>, ctx: DurableContext<z.infer<InputSchema>>) => Promise<z.infer<OutputSchema>>;
+    } & Omit<CreateDurableTaskWorkflowOpts<z.infer<InputSchema>, z.infer<OutputSchema>>, 'fn'>
+  ): AgentDeclaration<InputSchema, OutputSchema>;
 
   /**
    * Implementation of the agent method.
    */
-  agent(options: any): TaskWorkflowDeclaration<any, any> {
-    return CreateDurableTaskWorkflow(options, this);
+  agent(options: any): AgentDeclaration<any, any> {
+    const { inputSchema, outputSchema, fn, description, ...rest } = options;
+
+    const wrappedFn = async (input: any, ctx?: any) => {
+      const validatedInput = inputSchema.parse(input);
+      const result = await fn(validatedInput, ctx);
+      return outputSchema.parse(result);
+    };
+
+    const declaration = CreateDurableTaskWorkflow({ ...rest, fn: wrappedFn }, this) as AgentDeclaration<any, any>;
+    declaration.inputSchema = inputSchema;
+    declaration.outputSchema = outputSchema;
+    declaration.description = description;
+    return declaration as AgentDeclaration<any, any>;
   }
 
 
