@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { pickaxe } from "@/client";
+import { pickaxe } from "@/pickaxe-client";
 
 export const time = pickaxe.tool({
   name: "time",

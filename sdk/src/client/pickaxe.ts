@@ -1,19 +1,10 @@
-import Hatchet, { CreateDurableTaskWorkflow, CreateDurableTaskWorkflowOpts, CreateTaskWorkflow, CreateTaskWorkflowOpts, CreateWorkerOpts, DurableContext, InputType, OutputType, TaskWorkflowDeclaration, UnknownInputType, V0DurableContext } from "@hatchet-dev/typescript-sdk";
+import Hatchet, { BaseWorkflowDeclaration, CreateDurableTaskWorkflow, CreateDurableTaskWorkflowOpts, CreateTaskWorkflow, CreateTaskWorkflowOpts, CreateWorkerOpts, DurableContext, InputType, OutputType, TaskWorkflowDeclaration, UnknownInputType, V0DurableContext } from "@hatchet-dev/typescript-sdk";
 import { HatchetClientOptions, ClientConfig as HatchetClientConfig } from "@hatchet-dev/typescript-sdk/clients/hatchet-client";
 import { LanguageModelV1 } from "ai";
 import { AxiosRequestConfig } from "axios";
 import { z } from "zod";
+import { CreateToolboxProps, Toolbox, ToolDeclaration } from "./toolbox";
 
-
-
-export interface ToolDeclaration<
-  InputSchema extends z.ZodType,
-  OutputSchema extends z.ZodType
-> extends TaskWorkflowDeclaration<z.infer<InputSchema>, z.infer<OutputSchema>> {
-  inputSchema: InputSchema;
-  outputSchema: OutputSchema;
-  description: string;
-}
 
 export interface AgentDeclaration<
   InputSchema extends z.ZodType,
@@ -28,17 +19,15 @@ export interface ClientConfig extends HatchetClientConfig {
   defaultLanguageModel: LanguageModelV1;
 }
 
-export interface Registerable {
-  register: () => TaskWorkflowDeclaration<any, any>[];
+export abstract class Registerable {
+  abstract get register(): BaseWorkflowDeclaration<any, any>[];
 }
 
 
+type BaseOrRegisterable = BaseWorkflowDeclaration<any, any> | Registerable;
+
 interface StartOptions extends CreateWorkerOpts {
-  agents?: AgentDeclaration<any, any>[];
-  toolboxes?: Registerable[];
-  tools?: ToolDeclaration<any, any>[];
-  workflows?: TaskWorkflowDeclaration<any, any>[];
-  tasks?: TaskWorkflowDeclaration<any, any>[];
+  register: Array<BaseOrRegisterable> | Array<Array<BaseOrRegisterable>>;
 }
 
 export class Pickaxe extends Hatchet {
@@ -57,25 +46,18 @@ export class Pickaxe extends Hatchet {
   }
 
   async start(options: StartOptions) {
+    const { register = [], ...rest } = options;
 
-    const { agents, toolboxes, tools, workflows, tasks, ...rest } = options;
-
-    const registerables = [
-      ...(agents ?? []),
-      ...(toolboxes?.flatMap((registerable) => registerable.register()) ?? []),
-      ...(tools ?? []),
-      ...(workflows ?? []),
-      ...(tasks ?? []),
-    ];
-
-    // deduplicate by name
-    const deduplicatedRegisterables = registerables.filter((registerable, index, self) =>
-      index === self.findIndex((t) => t.name === registerable.name)
-    );
+    const workflows = register.flat().flatMap((registerable) => {
+      if ('register' in registerable) {
+        return registerable.register;
+      }
+      return registerable;
+    });
 
     const worker = await this.worker('pickaxe-worker', {
-     ...rest,
-     workflows: deduplicatedRegisterables.flatMap((registerable) => registerable),
+      ...rest,
+      workflows,
     });
 
     return worker.start();
@@ -163,6 +145,11 @@ export class Pickaxe extends Hatchet {
     declaration.description = description;
 
     return declaration;
+  }
+
+
+  toolbox(props: CreateToolboxProps) {
+    return new Toolbox(props, this);
   }
 }
 

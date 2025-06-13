@@ -1,4 +1,4 @@
-import { pickaxe } from "@/client";
+import { pickaxe } from "@/pickaxe-client";
 import { extractFacts, judgeFacts, judgeResults, planSearch, summarize, search } from "./tools";
 import { websiteToMd } from "./tools/website-to-md";
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { generateText as aiGenerateText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { pickaxe } from "@/client";
+import { pickaxe } from "@/pickaxe-client";
 
 const WebsiteToMdxInputSchema = z.object({
   url: z.string().url(),

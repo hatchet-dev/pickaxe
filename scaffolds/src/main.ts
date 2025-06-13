@@ -1,13 +1,7 @@
-import { pickaxe } from "@/client";
-import { simpleAgent, simpleToolbox } from "./agents/simple/agent";
+import { pickaxe } from "@/pickaxe-client";
+import simple from "./agents/simple/agent";
 
-async function main() {
-  await pickaxe.start({
-    agents: [simpleAgent],
-    toolboxes: [simpleToolbox],
-  });
-}
-
-main().catch(console.error).finally(() => {
-  process.exit(0);
+pickaxe.start({
+  register: [simple],
+  // toolboxes: [simpleToolbox],
 });

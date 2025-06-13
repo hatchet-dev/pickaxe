@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { pickaxe } from "@/client";
+import { pickaxe } from "@/pickaxe-client";
 
 export const PlanSearchInputSchema = z.object({
   query: z.string(),

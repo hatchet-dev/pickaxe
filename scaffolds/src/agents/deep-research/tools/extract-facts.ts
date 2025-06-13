@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { generateObject } from "ai";
-import { pickaxe } from "@/client";
+import { pickaxe } from "@/pickaxe-client";
 
 const ExtractFactsInputSchema = z.object({
   source: z.string(),

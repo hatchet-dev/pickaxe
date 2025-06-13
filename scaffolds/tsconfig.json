@@ -12,6 +12,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../sdk/src/client/toolbox.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 } 

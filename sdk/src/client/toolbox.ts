@@ -1,23 +1,21 @@
 import { z } from "zod";
 import { generateText } from "ai";
 import { zodSchema } from "ai";
-import { pickaxe } from "@/client";
-import { ToolDeclaration, DurableContext, Registerable, TaskWorkflowDeclaration } from "@hatchet-dev/pickaxe/src";
+import { DurableContext, TaskWorkflowDeclaration } from "@hatchet-dev/typescript-sdk";
+import { Pickaxe, Registerable } from "./pickaxe";
 
-export interface ToolboxProps {
-  tools: ReadonlyArray<ToolDeclaration<any, any>> | ToolDeclaration<any, any>[];
+export interface ToolDeclaration<
+  InputSchema extends z.ZodType,
+  OutputSchema extends z.ZodType
+> extends TaskWorkflowDeclaration<z.infer<InputSchema>, z.infer<OutputSchema>> {
+  inputSchema: InputSchema;
+  outputSchema: OutputSchema;
+  description: string;
 }
 
-// Create a type helper to extract output types from declarations
-type InferToolOutputs<T> = T extends ReadonlyArray<infer U> | Array<infer U> 
-  ? U extends ToolDeclaration<any, any>
-    ? {
-      [K in U['name']]?: U extends { name: K, outputSchema: z.ZodType<infer R> }
-        ? R
-        : never;
-    }
-    : never
-  : never;
+export interface CreateToolboxProps {
+  tools: ReadonlyArray<ToolDeclaration<any, any>> | ToolDeclaration<any, any>[];
+}
 
 export type ToolSet = {
   [key: string]: {
@@ -59,10 +57,10 @@ type PickInput = {
   maxTools?: number;
 };
 
-class Toolbox implements Registerable {
+export class Toolbox implements Registerable {
   toolset: SerializedToolSet;
 
-  constructor(private props: ToolboxProps) {
+  constructor(private props: CreateToolboxProps, private client: Pickaxe) {
     this.toolset = Array.from(this.props.tools).reduce<SerializedToolSet>(
       (acc, { name, description, inputSchema }) => {
         return {
@@ -78,38 +76,22 @@ class Toolbox implements Registerable {
     );
   }
 
-  register(): TaskWorkflowDeclaration<any, any>[] {
-    return [...this.props.tools, pick];
+  get register(): TaskWorkflowDeclaration<any, any>[] {
+    return [...this.props.tools, pickToolFactory(this.client)];
   }
 
   async pick(ctx: DurableContext<any>, {prompt, maxTools}: PickInput) {
-    const result = await ctx.runChild(pick, { prompt, toolset: this.toolset, maxTools });
+    const result = await ctx.runChild(pickToolFactory(this.client), { prompt, toolset: this.toolset, maxTools });
     return result.steps;
   }
 
-  async pickRun(
-    ctx: DurableContext<any>, 
-    {prompt, maxTools}: PickInput
-  ): Promise<InferToolOutputs<typeof this.props.tools>> {
-    const result = await ctx.runChild(pick, { prompt, toolset: this.toolset, maxTools });
+  // async pickRun(
+  //   ctx: DurableContext<any>, 
+  //   {prompt, maxTools}: PickInput
+  // ): Promise<any> {
 
-    const toolResults = await ctx.bulkRunChildren(result.steps.map((step) => {
-      const toolCall = step[0];
-      return {
-        workflow: toolCall.toolName,
-        input: toolCall.args,
-      };
-    }));
-
-    // Create a map of tool names to their results
-    const resultMap = {} as InferToolOutputs<typeof this.props.tools>;
-    toolResults.forEach((result) => {
-      const toolCall = result.steps[0][0];
-      resultMap[toolCall.toolName as keyof InferToolOutputs<typeof this.props.tools>] = result;
-    });
-
-    return resultMap;
-  }
+  //   return resultMap;
+  // }
 }
 
 
@@ -121,8 +103,8 @@ type PickOutput = {
   toolset: SerializedToolSet;
 };
 
-const pick = pickaxe.task({
-  name: "pick",
+const pickToolFactory = (pickaxe: Pickaxe) => pickaxe.task({
+  name: "pick-tool",
   executionTimeout: "5m",
   fn: async (input: PickInputWithToolset) => {
     console.log(JSON.stringify(input.toolset, null, 2));
@@ -136,7 +118,3 @@ const pick = pickaxe.task({
     return { steps: steps.map((step) => step.toolCalls) };
   },
 });
-
-export const toolbox = (props: ToolboxProps) => {
-  return new Toolbox(props);
-};

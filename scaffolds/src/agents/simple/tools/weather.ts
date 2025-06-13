@@ -1,4 +1,4 @@
-import { pickaxe } from "@/client";
+import { pickaxe } from "@/pickaxe-client";
 import { z } from "zod";
 
 type WeatherInput = {
