@@ -1,0 +1,4 @@
+packages:
+  - 'sdk'
+  - 'scaffolds' 
+  - 'cli'

@@ -1,40 +1,14 @@
 {
-  "name": "pickaxe",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "bin": {
-    "pickaxe": "./dist/index.js"
-  },
-  "scripts": {
-    "build": "tsc",
-    "dev": "pnpm exec ts-node src/index.ts",
-    "start": "node dist/index.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
-  },
-  "keywords": [
-    "cli",
-    "tool",
-    "commander"
+  "name": "pickaxe-monorepo",
+  "private": true,
+  "workspaces": [
+    "utils",
+    "scaffold"
   ],
-  "author": "",
-  "license": "ISC",
-  "description": "CLI tool for managing components, agents, and tools",
-  "dependencies": {
-    "axios": "^1.9.0",
-    "commander": "^14.0.0",
-    "handlebars": "^4.7.8",
-    "prompts": "^2.4.2"
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces"
   },
-  "devDependencies": {
-    "@types/handlebars": "^4.1.0",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^24.0.1",
-    "@types/prompts": "^2.4.9",
-    "jest": "^30.0.0",
-    "ts-jest": "^29.4.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
-  }
+  "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0"
 }
