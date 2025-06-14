@@ -1,29 +1,29 @@
-const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
-const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
+const { Server } = require("@modelcontextprotocol/sdk/server/index.js");
+const {
+  StdioServerTransport,
+} = require("@modelcontextprotocol/sdk/server/stdio.js");
 const {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ErrorCode,
-  McpError
-} = require('@modelcontextprotocol/sdk/types.js');
-const { z } = require('zod');
-const { promises: fs } = require('fs');
-const path = require('path');
+  McpError,
+} = require("@modelcontextprotocol/sdk/types.js");
+const { z } = require("zod");
+const { promises: fs } = require("fs");
+const path = require("path");
 
 // Schema for tool arguments
 const CreateAgentArgsSchema = z.object({
-  name: z.string().describe('Name of the agent to create'),
-  description: z.string().describe('Description of what the agent does'),
-});
-
-const CreateComponentArgsSchema = z.object({
-  name: z.string().describe('Name of the component to create'),
-  type: z.string().optional().describe('Type of component (default: "default")'),
+  name: z.string().describe("Name of the agent to create"),
+  description: z.string().describe("Description of what the agent does"),
 });
 
 const CreateToolArgsSchema = z.object({
-  name: z.string().describe('Name of the tool to create'),
-  category: z.string().optional().describe('Category of the tool (default: "utility")'),
+  name: z.string().describe("Name of the tool to create"),
+  category: z
+    .string()
+    .optional()
+    .describe('Category of the tool (default: "utility")'),
 });
 
 export class PickaxeMcpServer {
@@ -32,8 +32,8 @@ export class PickaxeMcpServer {
   constructor() {
     this.server = new Server(
       {
-        name: 'pickaxe-mcp-server',
-        version: '1.0.0',
+        name: "pickaxe-mcp-server",
+        version: "1.0.0",
       },
       {
         capabilities: {
@@ -52,79 +52,63 @@ export class PickaxeMcpServer {
       return {
         tools: [
           {
-            name: 'create_agent',
-            description: 'Create a new AI agent with a simple interface that has a name, description, and execute method',
+            name: "create_agent",
+            description:
+              "Create a new AI agent with a simple interface that has a name, description, and execute method",
             inputSchema: {
-              type: 'object',
+              type: "object",
               properties: {
                 name: {
-                  type: 'string',
-                  description: 'Name of the agent to create',
+                  type: "string",
+                  description: "Name of the agent to create",
                 },
                 description: {
-                  type: 'string',
-                  description: 'Description of what the agent does',
+                  type: "string",
+                  description: "Description of what the agent does",
                 },
               },
-              required: ['name', 'description'],
+              required: ["name", "description"],
             },
           },
           {
-            name: 'create_component',
-            description: 'Create a new React component with TypeScript support, including tests and documentation',
+            name: "create_tool",
+            description:
+              "Create a new utility tool with specified category and functionality",
             inputSchema: {
-              type: 'object',
+              type: "object",
               properties: {
                 name: {
-                  type: 'string',
-                  description: 'Name of the component to create',
-                },
-                type: {
-                  type: 'string',
-                  description: 'Type of component (default: "default")',
-                },
-              },
-              required: ['name'],
-            },
-          },
-          {
-            name: 'create_tool',
-            description: 'Create a new utility tool with specified category and functionality',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                name: {
-                  type: 'string',
-                  description: 'Name of the tool to create',
+                  type: "string",
+                  description: "Name of the tool to create",
                 },
                 category: {
-                  type: 'string',
+                  type: "string",
                   description: 'Category of the tool (default: "utility")',
                 },
               },
-              required: ['name'],
+              required: ["name"],
             },
           },
           {
-            name: 'list_agents',
-            description: 'List all created agents in the agents directory',
+            name: "list_agents",
+            description: "List all created agents in the agents directory",
             inputSchema: {
-              type: 'object',
+              type: "object",
               properties: {},
             },
           },
           {
-            name: 'get_agent_info',
-            description: 'Get detailed information about a specific agent',
+            name: "get_agent_info",
+            description: "Get detailed information about a specific agent",
             inputSchema: {
-              type: 'object',
+              type: "object",
               properties: {
                 name: {
-                  type: 'string',
-                  description: 'Name of the agent to get information about',
+                  type: "string",
+                  description: "Name of the agent to get information about",
                 },
               },
-              required: ['name'],
+              required: ["name"],
             },
           },
         ],
@@ -133,55 +117,58 @@ export class PickaxeMcpServer {
   }
 
   private setupRequestHandlers() {
-    this.server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
-      try {
-        const { name, arguments: args } = request.params;
+    this.server.setRequestHandler(
+      CallToolRequestSchema,
+      async (request: any) => {
+        try {
+          const { name, arguments: args } = request.params;
 
-        switch (name) {
-          case 'create_agent':
-            return await this.handleCreateAgent(args);
-          case 'create_component':
-            return await this.handleCreateComponent(args);
-          case 'create_tool':
-            return await this.handleCreateTool(args);
-          case 'list_agents':
-            return await this.handleListAgents();
-          case 'get_agent_info':
-            return await this.handleGetAgentInfo(args);
-          default:
-            throw new McpError(
-              ErrorCode.MethodNotFound,
-              `Unknown tool: ${name}`
-            );
+          switch (name) {
+            case "create_agent":
+              return await this.handleCreateAgent(args);
+            case "create_tool":
+              return await this.handleCreateTool(args);
+            case "list_agents":
+              return await this.handleListAgents();
+            case "get_agent_info":
+              return await this.handleGetAgentInfo(args);
+            default:
+              throw new McpError(
+                ErrorCode.MethodNotFound,
+                `Unknown tool: ${name}`
+              );
+          }
+        } catch (error) {
+          if (error instanceof McpError) {
+            throw error;
+          }
+          throw new McpError(
+            ErrorCode.InternalError,
+            `Tool execution failed: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`
+          );
         }
-      } catch (error) {
-        if (error instanceof McpError) {
-          throw error;
-        }
-        throw new McpError(
-          ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
       }
-    });
+    );
   }
 
   private async handleCreateAgent(args: any) {
     const { name, description } = CreateAgentArgsSchema.parse(args);
-    
+
     try {
       // Use the existing createAgent function
-      const { createAgent } = require('../commands/add-agent');
-      
-      const result = await createAgent(name, { 
-        description, 
-        silent: true 
+      const { createAgent } = require("../commands/add-agent");
+
+      const result = await createAgent(name, {
+        description,
+        silent: true,
       });
-      
+
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `${result.message}\nFiles created in: ${result.outputDir}`,
           },
         ],
@@ -189,51 +176,27 @@ export class PickaxeMcpServer {
     } catch (error) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to create agent: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
-  }
-
-  private async handleCreateComponent(args: any) {
-    const { name, type = 'default' } = CreateComponentArgsSchema.parse(args);
-    
-    try {
-      // Use the existing addComponent command
-      const { addComponent } = require('../commands/add-component');
-      
-      // Call the command - note: this currently just logs placeholder text
-      await addComponent(name, { type });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Component creation requested: '${name}' of type '${type}'. (Command executed, but component templates not yet implemented)`,
-          },
-        ],
-      };
-    } catch (error) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Failed to create component: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create agent: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
       );
     }
   }
 
   private async handleCreateTool(args: any) {
-    const { name, category = 'utility' } = CreateToolArgsSchema.parse(args);
-    
+    const { name, category = "utility" } = CreateToolArgsSchema.parse(args);
+
     try {
       // Use the existing addTool command
-      const { addTool } = require('../commands/add-tool');
-      
+      const { addTool } = require("../commands/add-tool");
+
       // Call the command - note: this currently just logs placeholder text
       await addTool(name, { category });
-      
+
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Tool creation requested: '${name}' in category '${category}'. (Command executed, but tool templates not yet implemented)`,
           },
         ],
@@ -241,7 +204,9 @@ export class PickaxeMcpServer {
     } catch (error) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to create tool: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create tool: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
       );
     }
   }
@@ -249,15 +214,15 @@ export class PickaxeMcpServer {
   private async handleListAgents() {
     try {
       // Use the existing listAgents utility
-      const { listAgents } = require('../utils');
+      const { listAgents } = require("../utils");
       const agents = await listAgents();
 
       if (agents.length === 0) {
         return {
           content: [
             {
-              type: 'text',
-              text: 'No agents found. Create your first agent with the create_agent tool.',
+              type: "text",
+              text: "No agents found. Create your first agent with the create_agent tool.",
             },
           ],
         };
@@ -266,25 +231,29 @@ export class PickaxeMcpServer {
       return {
         content: [
           {
-            type: 'text',
-            text: `Found ${agents.length} agents:\n${agents.map((name: any) => `- ${name}`).join('\n')}`,
+            type: "text",
+            text: `Found ${agents.length} agents:\n${agents
+              .map((name: any) => `- ${name}`)
+              .join("\n")}`,
           },
         ],
       };
     } catch (error) {
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to list agents: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to list agents: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
       );
     }
   }
 
   private async handleGetAgentInfo(args: any) {
     const { name } = z.object({ name: z.string() }).parse(args);
-    
+
     try {
       // Use the existing getAgentInfo utility
-      const { getAgentInfo } = require('../utils');
+      const { getAgentInfo } = require("../utils");
       const agentInfo = await getAgentInfo(name);
 
       if (!agentInfo) {
@@ -297,7 +266,7 @@ export class PickaxeMcpServer {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Agent: ${agentInfo.name}\nDescription: ${agentInfo.description}\nLocation: ${agentInfo.location}`,
           },
         ],
@@ -308,7 +277,9 @@ export class PickaxeMcpServer {
       }
       throw new McpError(
         ErrorCode.InternalError,
-        `Failed to get agent info: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get agent info: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
       );
     }
   }
@@ -316,7 +287,7 @@ export class PickaxeMcpServer {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Pickaxe MCP server running on stdio');
+    console.error("Pickaxe MCP server running on stdio");
   }
 }
 

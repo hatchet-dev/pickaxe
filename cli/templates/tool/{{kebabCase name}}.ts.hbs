@@ -1,0 +1,39 @@
+import { z } from "zod";
+import { pickaxe } from "@/pickaxe-client";
+
+// TODO: Define your custom interfaces here if needed
+// interface MyResponse {
+//   data: string;
+//   status: string;
+// }
+
+export const {{camelCase name}} = pickaxe.tool({
+  name: "{{kebabCase name}}",
+  description: "{{description}}",
+  inputSchema: z.object({
+    // TODO: Define your input schema here
+    // Example: input: z.string().describe("The input parameter")
+  }),
+  outputSchema: z.object({
+    // TODO: Define your output schema here  
+    // Example: result: z.string().describe("The tool result")
+  }),
+  fn: async (input) => {
+    try {
+      // TODO: Implement your tool logic here
+      // Example API call:
+      // const response = await fetch(`https://api.example.com/data?param=${input.param}`);
+      // const data = await response.json();
+      
+      return {
+        // TODO: Return your tool output here
+        // Example: result: data.message
+      };
+    } catch (error) {
+      return {
+        // TODO: Handle errors appropriately for your tool
+        // Example: result: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+});

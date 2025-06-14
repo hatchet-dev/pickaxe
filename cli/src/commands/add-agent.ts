@@ -38,8 +38,8 @@ export async function createAgent(name: string, options: { model?: string; descr
       console.log(`\n✅ Agent '${config.name}' created successfully!`);
       console.log(`📁 Files created in: ${outputDir}`);
       console.log('\n📝 Next steps:');
-      console.log('1. Implement the agent logic in the execute method');
-      console.log('2. Run the tests to verify functionality');
+      console.log('1. Import your tools and add them to the toolbox');
+      console.log('2. Implement tool result handling in the switch statement');
       console.log('3. Update the agent implementation as needed');
     }
 

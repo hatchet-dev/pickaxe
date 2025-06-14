@@ -1,32 +1,45 @@
-/**
- * {{pascalCase name}} Agent
- * {{description}}
- * 
- * Created: {{currentDate}}
- */
+import { pickaxe } from "@/pickaxe-client";
+import z from "zod";
+// TODO: Import your tools here
+// Example: import { myTool } from "@/tools/my-tool";
 
-export interface {{pascalCase name}}Agent {
-  name: string;
-  description: string;
-  execute(input: string): Promise<string>;
-}
+const {{pascalCase name}}AgentInput = z.object({
+  message: z.string(),
+});
 
-export class {{pascalCase name}} implements {{pascalCase name}}Agent {
-  public readonly name: string;
-  public readonly description: string;
+const {{pascalCase name}}AgentOutput = z.object({
+  message: z.string(),
+});
 
-  constructor() {
-    this.name = '{{name}}';
-    this.description = '{{description}}';
-  }
+export const {{camelCase name}}Toolbox = pickaxe.toolbox({
+  tools: [
+    // TODO: Add your tools here
+    // Example: myTool,
+  ],
+});
 
-  async execute(input: string): Promise<string> {
-    // TODO: Implement agent logic here
-    console.log(`Executing {{pascalCase name}} agent with input: ${input}`);
-    
-    // Placeholder implementation
-    return `{{pascalCase name}} processed: ${input}`;
-  }
-}
+export const {{camelCase name}}Agent = pickaxe.agent({
+  name: "{{kebabCase name}}-agent",
+  executionTimeout: "15m",
+  inputSchema: {{pascalCase name}}AgentInput,
+  outputSchema: {{pascalCase name}}AgentOutput,
+  description: "{{description}}",
+  fn: async (input, ctx) => {
+    const result = await {{camelCase name}}Toolbox.pickAndRun(ctx, {
+      prompt: input.message,
+    });
 
-export default {{pascalCase name}};
+    switch (result.name) {
+      // TODO: Handle your tool results here
+      // Example:
+      // case "myTool":
+      //   return {
+      //     message: `Result: ${result.output}`,
+      //   };
+      default:
+        return {{camelCase name}}Toolbox.assertExhaustive(result);
+    }
+  },
+});
+
+export default [{{camelCase name}}Agent, {{camelCase name}}Toolbox];
