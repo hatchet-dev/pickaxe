@@ -3,9 +3,9 @@ import { pickaxe } from "@/pickaxe-client";
 
 export const time = pickaxe.tool({
   name: "time",
-  description: "Get the current time in a given city",
+  description: "Get the current time in a given city or location",
   inputSchema: z.object({
-    city: z.string()
+    city: z.string().describe("The city or location to get the time for")
   }),
   outputSchema: z.object({
     city: z.string(),
@@ -15,38 +15,97 @@ export const time = pickaxe.tool({
     summary: z.string()
   }),
   fn: async (input) => {
-    try {
-      // Use WorldTimeAPI with city/region format (more reliable)
-      const cityFormatted = input.city.toLowerCase().replace(/\s+/g, '_');
-      
-      // Try common timezone patterns for major cities
-      const timezoneMappings: Record<string, string> = {
-        'new_york': 'America/New_York',
-        'los_angeles': 'America/Los_Angeles',
-        'chicago': 'America/Chicago',
-        'miami': 'America/New_York',
-        'denver': 'America/Denver',
-        'phoenix': 'America/Phoenix',
-        'london': 'Europe/London',
-        'paris': 'Europe/Paris',
-        'berlin': 'Europe/Berlin',
-        'tokyo': 'Asia/Tokyo',
-        'sydney': 'Australia/Sydney',
-        'toronto': 'America/Toronto',
-        'vancouver': 'America/Vancouver'
-      };
+    // Helper function to format time consistently
+    const formatTime = (date: Date, timezone: string) => {
+      return date.toLocaleString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'short',
+        timeZone: timezone
+      });
+    };
 
-      let timezone = timezoneMappings[cityFormatted];
+    const utcNow = new Date();
+
+    try {
+      // Step 1: Get coordinates and timezone using OpenMeteo Geocoding API
+      console.info(`Looking up coordinates and timezone for: ${input.city}`);
+      const geocodingUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(input.city)}&count=1&language=en&format=json`;
       
-      if (timezone) {
-        // Try the known timezone
+      const geocodingResponse = await fetch(geocodingUrl, {
+        timeout: 8000
+      });
+
+      if (!geocodingResponse.ok) {
+        throw new Error(`Geocoding API returned ${geocodingResponse.status}`);
+      }
+
+      const geocodingData = await geocodingResponse.json();
+
+      if (!geocodingData.results || geocodingData.results.length === 0) {
+        throw new Error(`Location "${input.city}" not found`);
+      }
+
+      const location = geocodingData.results[0];
+      const { latitude, longitude, name, timezone, country } = location;
+
+      console.info(`Found: ${name}, ${country} (${latitude}, ${longitude}) - Timezone: ${timezone}`);
+
+      // Step 2: Get current time for the timezone using WorldTimeAPI
+      try {
         const timeUrl = `https://worldtimeapi.org/api/timezone/${timezone}`;
-        const response = await fetch(timeUrl);
-        
-        if (response.ok) {
-          const timeData = await response.json();
+        const timeResponse = await fetch(timeUrl, {
+          timeout: 5000
+        });
+
+        if (timeResponse.ok) {
+          const timeData = await timeResponse.json();
           const localTime = new Date(timeData.datetime);
+          const formattedTime = formatTime(localTime, timezone);
+
+          return {
+            city: `${name}, ${country}`,
+            timezone: timezone,
+            localTime: formattedTime,
+            utcTime: utcNow.toISOString(),
+            summary: `${formattedTime} in ${name}, ${country}`
+          };
+        } else {
+          console.warn(`WorldTimeAPI returned ${timeResponse.status} for ${timezone}`);
+        }
+      } catch (timeApiError) {
+        console.warn(`WorldTimeAPI failed for ${timezone}:`, timeApiError);
+      }
+
+      // Step 3: Fallback to JavaScript built-in timezone calculation
+      try {
+        console.info(`Using JavaScript built-in timezone for ${name} (${timezone})`);
+        const localTime = new Date();
+        const formattedTime = formatTime(localTime, timezone);
+
+        return {
+          city: `${name}, ${country}`,
+          timezone: timezone,
+          localTime: formattedTime,
+          utcTime: utcNow.toISOString(),
+          summary: `${formattedTime} in ${name}, ${country} (estimated)`
+        };
+      } catch (timezoneError) {
+        console.warn(`Built-in timezone calculation failed for ${timezone}:`, timezoneError);
+        
+        // Step 4: Calculate timezone offset manually using coordinates
+        try {
+          // Rough timezone offset calculation based on longitude
+          // This is approximate: each 15 degrees of longitude ≈ 1 hour
+          const approximateOffset = Math.round(longitude / 15);
+          const offsetMinutes = approximateOffset * 60;
           
+          const localTime = new Date(utcNow.getTime() + (offsetMinutes * 60 * 1000));
           const formattedTime = localTime.toLocaleString('en-US', {
             weekday: 'short',
             year: 'numeric',
@@ -54,59 +113,40 @@ export const time = pickaxe.tool({
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-            timeZoneName: 'short'
+            second: '2-digit'
           });
-          
+
+          console.info(`Using coordinate-based time calculation for ${name} (offset: UTC${approximateOffset >= 0 ? '+' : ''}${approximateOffset})`);
+
           return {
-            city: input.city,
-            timezone: timezone,
-            localTime: formattedTime,
-            utcTime: new Date().toISOString(),
-            summary: `${formattedTime} in ${input.city}`
+            city: `${name}, ${country}`,
+            timezone: `UTC${approximateOffset >= 0 ? '+' : ''}${approximateOffset}`,
+            localTime: `${formattedTime} (approx)`,
+            utcTime: utcNow.toISOString(),
+            summary: `${formattedTime} in ${name}, ${country} (approximate)`
           };
+        } catch (coordError) {
+          console.warn(`Coordinate-based calculation failed:`, coordError);
         }
       }
 
-      // Fallback: return current UTC time with note
-      const utcTime = new Date().toLocaleString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'UTC',
-        timeZoneName: 'short'
-      });
-
-      return {
-        city: input.city,
-        timezone: 'UTC',
-        localTime: utcTime,
-        utcTime: new Date().toISOString(),
-        summary: `Current UTC time: ${utcTime} (local time for ${input.city} unavailable)`
-      };
+    } catch (geoError) {
+      console.error(`Failed to get location data for "${input.city}":`, geoError);
       
-    } catch (error) {
-      // Final fallback
-      const utcTime = new Date().toLocaleString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'UTC',
-        timeZoneName: 'short'
-      });
-
-      return {
-        city: input.city,
-        timezone: 'UTC',
-        localTime: utcTime,
-        utcTime: new Date().toISOString(),
-        summary: `Current UTC time: ${utcTime} (unable to get time for ${input.city})`
-      };
+      // If geocoding fails completely, throw a helpful error
+      throw new Error(`Unable to find time information for "${input.city}". Please check the spelling or try a different city name.`);
     }
+
+    // Final fallback: UTC time (should rarely be reached)
+    console.warn(`All time calculation methods failed for ${input.city}, returning UTC time`);
+    const utcFormatted = formatTime(utcNow, 'UTC');
+
+    return {
+      city: input.city,
+      timezone: 'UTC',
+      localTime: utcFormatted,
+      utcTime: utcNow.toISOString(),
+      summary: `${utcFormatted} (UTC) - Local time calculation failed for ${input.city}`
+    };
   }
 });

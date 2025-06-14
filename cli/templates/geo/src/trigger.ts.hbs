@@ -39,7 +39,26 @@ async function runAgent(query: string) {
     console.log(`✅ Completed in ${duration}ms\n`);
     console.log('📄 Result:');
     console.log('-'.repeat(50));
-    console.log(typeof result === 'string' ? result : JSON.stringify(result, null, 2));
+    
+    // Print the main message
+    console.log(result.message);
+    
+    // Print highlights if available
+    if (result.highlights && result.highlights.length > 0) {
+      console.log('\n🔍 Key Information:');
+      result.highlights.forEach((highlight, index) => {
+        console.log(`  • ${highlight}`);
+      });
+    }
+    
+    // Print recommendations if available
+    if (result.recommendations && result.recommendations.length > 0) {
+      console.log('\n💡 Recommendations:');
+      result.recommendations.forEach((recommendation, index) => {
+        console.log(`  • ${recommendation}`);
+      });
+    }
+    
     console.log('-'.repeat(50));
   } catch (error) {
     const duration = Date.now() - startTime;
