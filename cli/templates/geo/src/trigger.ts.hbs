@@ -1,5 +1,5 @@
 import * as readline from 'readline';
-import { {{camelCase name}}Agent } from './agents/{{kebabCase name}}/{{kebabCase name}}.agent';
+import { {{camelCase name}}Agent } from '@/agents/{{kebabCase name}}/{{kebabCase name}}.agent';
 
 const presetQueries = {
   '1': "What's the current weather in New York City?",
@@ -31,7 +31,9 @@ async function runAgent(query: string) {
   console.log('⏳ Processing...\n');
 
   try {
-    const result = await {{camelCase name}}Agent.run(query);
+    const result = await {{camelCase name}}Agent.run({
+      message: query
+    });
     const duration = Date.now() - startTime;
 
     console.log(`✅ Completed in ${duration}ms\n`);

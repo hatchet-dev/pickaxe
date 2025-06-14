@@ -41,7 +41,7 @@ export async function createTool(name: string, options: { category?: string; des
 
     if (!options.silent) {
       console.log(`\n✅ Tool '${config.name}' created successfully!`);
-      console.log(`📁 File created: ${path.join(outputDir, `${name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase().replace(/[\s_]+/g, '-')}.ts`)}`);
+      console.log(`📁 File created: ${path.join(outputDir, `${name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase().replace(/[\s_]+/g, '-')}.tool.ts`)}`);
       console.log('\n📝 Next steps:');
       console.log('1. Define your input and output schemas in the tool file');
       console.log('2. Implement the tool logic in the fn function');

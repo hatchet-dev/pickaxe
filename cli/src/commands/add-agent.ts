@@ -25,7 +25,7 @@ export async function createAgent(name: string, options: { model?: string; descr
       : await getAgentConfig(name);
     
     // Process templates - use absolute path from CLI tool location
-    const outputDir = path.join(agentsDir, config.name);
+    const outputDir = agentsDir;
     const templatesDir = path.join(__dirname, '..', '..', 'templates', 'agent');
     
     await processTemplate(
@@ -36,7 +36,7 @@ export async function createAgent(name: string, options: { model?: string; descr
 
     if (!options.silent) {
       console.log(`\n✅ Agent '${config.name}' created successfully!`);
-      console.log(`📁 Files created in: ${outputDir}`);
+      console.log(`📁 File created: ${path.join(outputDir, `${config.name}.agent.ts`)}`);
       console.log('\n📝 Next steps:');
       console.log('1. Import your tools and add them to the toolbox');
       console.log('2. Implement tool result handling in the switch statement');

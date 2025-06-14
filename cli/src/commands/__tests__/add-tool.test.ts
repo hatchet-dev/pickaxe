@@ -57,7 +57,7 @@ describe('add-tool command', () => {
       // Verify it shows the file creation location
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('📁 File created:'));
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('src/tools'));
-      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('my-tool.ts'));
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('my-tool.tool.ts'));
     });
 
     it('should work in silent mode', async () => {
