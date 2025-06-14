@@ -20,7 +20,12 @@ export const holiday = pickaxe.tool({
     country: z.string()
   }),
   outputSchema: z.object({
-    holiday: z.string()
+    country: z.string(),
+    holidayName: z.string().optional(),
+    holidayDate: z.string().optional(),
+    isToday: z.boolean(),
+    nextHoliday: z.string().optional(),
+    summary: z.string()
   }),
   fn: async (input) => {
     try {
@@ -42,7 +47,11 @@ export const holiday = pickaxe.tool({
       
       if (todayHoliday) {
         return {
-          holiday: `Today is ${todayHoliday.localName || todayHoliday.name} in ${input.country}`
+          country: input.country,
+          holidayName: todayHoliday.localName || todayHoliday.name,
+          holidayDate: todayHoliday.date,
+          isToday: true,
+          summary: `Today is ${todayHoliday.localName || todayHoliday.name} in ${input.country}`
         };
       }
       
@@ -54,16 +63,25 @@ export const holiday = pickaxe.tool({
       if (upcomingHoliday) {
         const holidayDate = new Date(upcomingHoliday.date);
         return {
-          holiday: `Next holiday in ${input.country}: ${upcomingHoliday.localName || upcomingHoliday.name} on ${holidayDate.toLocaleDateString()}`
+          country: input.country,
+          holidayName: upcomingHoliday.localName || upcomingHoliday.name,
+          holidayDate: upcomingHoliday.date,
+          isToday: false,
+          nextHoliday: `${upcomingHoliday.localName || upcomingHoliday.name} on ${holidayDate.toLocaleDateString()}`,
+          summary: `Next holiday in ${input.country}: ${upcomingHoliday.localName || upcomingHoliday.name} on ${holidayDate.toLocaleDateString()}`
         };
       }
       
       return {
-        holiday: `No upcoming holidays found for ${input.country} this year`
+        country: input.country,
+        isToday: false,
+        summary: `No upcoming holidays found for ${input.country} this year`
       };
     } catch (error) {
       return {
-        holiday: `Unable to get holiday information for ${input.country}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        country: input.country,
+        isToday: false,
+        summary: `Unable to get holiday information for ${input.country}: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }

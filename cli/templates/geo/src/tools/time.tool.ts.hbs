@@ -1,12 +1,6 @@
 import { z } from "zod";
 import { pickaxe } from "@/pickaxe-client";
 
-interface TimeZoneResponse {
-  timezone: string;
-  offset: number;
-  datetime: string;
-}
-
 export const time = pickaxe.tool({
   name: "time",
   description: "Get the current time in a given city",
@@ -14,53 +8,104 @@ export const time = pickaxe.tool({
     city: z.string()
   }),
   outputSchema: z.object({
-    time: z.string()
+    city: z.string(),
+    timezone: z.string(),
+    localTime: z.string(),
+    utcTime: z.string(),
+    summary: z.string()
   }),
   fn: async (input) => {
     try {
-      // Get coordinates for the city
-      const geocodingUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(input.city)}&count=1`;
-      const geocodingResponse = await fetch(geocodingUrl);
-      const geocodingData = await geocodingResponse.json();
-
-      if (!geocodingData.results?.[0]) {
-        throw new Error(`Location '${input.city}' not found`);
-      }
-
-      const { latitude, longitude, name, timezone } = geocodingData.results[0];
-
-      // Get current time for the timezone
-      const timeUrl = `https://worldtimeapi.org/api/timezone/${timezone}`;
-      const timeResponse = await fetch(timeUrl);
+      // Use WorldTimeAPI with city/region format (more reliable)
+      const cityFormatted = input.city.toLowerCase().replace(/\s+/g, '_');
       
-      if (!timeResponse.ok) {
-        // Fallback to coordinate-based time if timezone lookup fails
-        const fallbackUrl = `https://api.timezonedb.com/v2.1/get-time-zone?key=demo&format=json&by=position&lat=${latitude}&lng=${longitude}`;
-        const fallbackResponse = await fetch(fallbackUrl);
+      // Try common timezone patterns for major cities
+      const timezoneMappings: Record<string, string> = {
+        'new_york': 'America/New_York',
+        'los_angeles': 'America/Los_Angeles',
+        'chicago': 'America/Chicago',
+        'miami': 'America/New_York',
+        'denver': 'America/Denver',
+        'phoenix': 'America/Phoenix',
+        'london': 'Europe/London',
+        'paris': 'Europe/Paris',
+        'berlin': 'Europe/Berlin',
+        'tokyo': 'Asia/Tokyo',
+        'sydney': 'Australia/Sydney',
+        'toronto': 'America/Toronto',
+        'vancouver': 'America/Vancouver'
+      };
+
+      let timezone = timezoneMappings[cityFormatted];
+      
+      if (timezone) {
+        // Try the known timezone
+        const timeUrl = `https://worldtimeapi.org/api/timezone/${timezone}`;
+        const response = await fetch(timeUrl);
         
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          const localTime = new Date(fallbackData.formatted);
+        if (response.ok) {
+          const timeData = await response.json();
+          const localTime = new Date(timeData.datetime);
+          
+          const formattedTime = localTime.toLocaleString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZoneName: 'short'
+          });
+          
           return {
-            time: `${localTime.toLocaleString()} (${fallbackData.zoneName}) in ${name}`
+            city: input.city,
+            timezone: timezone,
+            localTime: formattedTime,
+            utcTime: new Date().toISOString(),
+            summary: `${formattedTime} in ${input.city}`
           };
         }
-        
-        // Ultimate fallback to UTC
-        return {
-          time: `${new Date().toISOString()} (UTC) - Unable to get local time for ${name}`
-        };
       }
 
-      const timeData: TimeZoneResponse = await timeResponse.json();
-      const localTime = new Date(timeData.datetime);
-      
+      // Fallback: return current UTC time with note
+      const utcTime = new Date().toLocaleString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC',
+        timeZoneName: 'short'
+      });
+
       return {
-        time: `${localTime.toLocaleString()} (${timeData.timezone}) in ${name}`
+        city: input.city,
+        timezone: 'UTC',
+        localTime: utcTime,
+        utcTime: new Date().toISOString(),
+        summary: `Current UTC time: ${utcTime} (local time for ${input.city} unavailable)`
       };
+      
     } catch (error) {
+      // Final fallback
+      const utcTime = new Date().toLocaleString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC',
+        timeZoneName: 'short'
+      });
+
       return {
-        time: `Unable to get time for ${input.city}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        city: input.city,
+        timezone: 'UTC',
+        localTime: utcTime,
+        utcTime: new Date().toISOString(),
+        summary: `Current UTC time: ${utcTime} (unable to get time for ${input.city})`
       };
     }
   }

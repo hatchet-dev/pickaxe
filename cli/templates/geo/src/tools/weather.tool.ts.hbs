@@ -6,7 +6,13 @@ const WeatherInput = z.object({
 });
 
 const WeatherOutput = z.object({
-  weather: z.string()
+  city: z.string(),
+  temperature: z.number(),
+  feelsLike: z.number(),
+  condition: z.string(),
+  humidity: z.number(),
+  windSpeed: z.number(),
+  summary: z.string()
 });
 
 interface WeatherResponse {
@@ -72,11 +78,24 @@ export const weather = pickaxe.tool({
       const windSpeed = Math.round(data.current.wind_speed_10m);
 
       return {
-        weather: `${weatherDescription} in ${name}. Temperature: ${temperature}°C (feels like ${feelsLike}°C). Humidity: ${humidity}%. Wind: ${windSpeed} km/h.`
+        city: name,
+        temperature,
+        feelsLike,
+        condition: weatherDescription,
+        humidity,
+        windSpeed,
+        summary: `${weatherDescription} in ${name}. Temperature: ${temperature}°C (feels like ${feelsLike}°C). Humidity: ${humidity}%. Wind: ${windSpeed} km/h.`
       };
     } catch (error) {
+      const errorMsg = `Unable to get weather for ${input.city}: ${error instanceof Error ? error.message : 'Unknown error'}`;
       return {
-        weather: `Unable to get weather for ${input.city}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        city: input.city,
+        temperature: 0,
+        feelsLike: 0,
+        condition: "Unknown",
+        humidity: 0,
+        windSpeed: 0,
+        summary: errorMsg
       };
     }
   },

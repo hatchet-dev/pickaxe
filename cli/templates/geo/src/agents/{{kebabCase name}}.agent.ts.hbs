@@ -2,6 +2,7 @@ import { pickaxe } from "@/pickaxe-client";
 import { weather } from "@/tools/weather.tool";
 import { time } from "@/tools/time.tool";
 import { holiday } from "@/tools/holiday.tool";
+import { summary } from "@/tools/summary.tool";
 import z from "zod";
 
 const {{pascalCase name}}AgentInput = z.object({
@@ -10,10 +11,12 @@ const {{pascalCase name}}AgentInput = z.object({
 
 const {{pascalCase name}}AgentOutput = z.object({
   message: z.string(),
+  highlights: z.array(z.string()).optional(),
+  recommendations: z.array(z.string()).optional(),
 });
 
 export const {{camelCase name}}Toolbox = pickaxe.toolbox({
-  tools: [weather, time, holiday],
+  tools: [weather, time, holiday, summary],
 });
 
 export const {{camelCase name}}Agent = pickaxe.agent({
@@ -21,28 +24,45 @@ export const {{camelCase name}}Agent = pickaxe.agent({
   executionTimeout: "15m",
   inputSchema: {{pascalCase name}}AgentInput,
   outputSchema: {{pascalCase name}}AgentOutput,
-  description: "A {{name}} agent to get the weather and time",
+  description: "A {{name}} agent to get weather, time, and holiday information with rich formatting",
   fn: async (input, ctx) => {
     const result = await {{camelCase name}}Toolbox.pickAndRun(ctx, {
       prompt: input.message,
     });
 
+    let geoData: any = {};
+
     switch (result.name) {
       case "weather":
-        return {
-          message: `The weather in ${result.args.city} is ${result.output}`,
-        };
+        geoData.weather = result.output;
+        break;
       case "time":
-        return {
-          message: `The time in ${result.args.city} is ${result.output}`,
-        };
+        geoData.time = result.output;
+        break;
       case "holiday":
+        geoData.holiday = result.output;
+        break;
+      case "summary":
         return {
-          message: `The holiday in ${result.args.country} is ${result.output}`,
+          message: result.output.formattedResponse,
+          highlights: result.output.highlights,
+          recommendations: result.output.recommendations,
         };
       default:
         return {{camelCase name}}Toolbox.assertExhaustive(result);
     }
+
+    // Use summary tool to format the response nicely
+    const summaryResult = await summary.run({
+      data: geoData,
+      userQuery: input.message
+    });
+
+    return {
+      message: summaryResult.formattedResponse,
+      highlights: summaryResult.highlights,
+      recommendations: summaryResult.recommendations,
+    };
   },
 });
 

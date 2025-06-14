@@ -1,0 +1,130 @@
+import { z } from "zod";
+import { pickaxe } from "@/pickaxe-client";
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+export const summary = pickaxe.tool({
+  name: "summary",
+  description: "Summarize and format geographic information using AI",
+  inputSchema: z.object({
+    data: z.object({
+      weather: z.object({
+        city: z.string(),
+        temperature: z.number(),
+        feelsLike: z.number(),
+        condition: z.string(),
+        humidity: z.number(),
+        windSpeed: z.number(),
+        summary: z.string()
+      }).optional(),
+      time: z.object({
+        city: z.string(),
+        timezone: z.string(),
+        localTime: z.string(),
+        utcTime: z.string(),
+        summary: z.string()
+      }).optional(),
+      holiday: z.object({
+        country: z.string(),
+        holidayName: z.string().optional(),
+        holidayDate: z.string().optional(),
+        isToday: z.boolean(),
+        nextHoliday: z.string().optional(),
+        summary: z.string()
+      }).optional()
+    }),
+    userQuery: z.string()
+  }),
+  outputSchema: z.object({
+    formattedResponse: z.string(),
+    highlights: z.array(z.string()),
+    recommendations: z.array(z.string()).optional()
+  }),
+  fn: async (input) => {
+    const { weather, time, holiday } = input.data;
+    const { userQuery } = input;
+
+    try {
+      // Prepare data for the LLM
+      const dataContext = {
+        weather: weather || null,
+        time: time || null,
+        holiday: holiday || null
+      };
+
+      const prompt = `You are a helpful assistant that formats geographic information in a user-friendly way. 
+
+User Query: "${userQuery}"
+
+Available Data:
+${JSON.stringify(dataContext, null, 2)}
+
+Please provide a response in the following JSON format:
+{
+  "formattedResponse": "A well-formatted, conversational response with emojis and clear structure",
+  "highlights": ["key", "pieces", "of", "information"],
+  "recommendations": ["optional", "actionable", "suggestions"]
+}
+
+Guidelines:
+- Use emojis to make it visually appealing (🌤️ for weather, 🕐 for time, 🎉 for holidays)
+- Structure the response with clear headings and bullet points
+- Extract 2-3 key highlights from the data
+- Provide practical recommendations based on the information (weather-based clothing advice, holiday suggestions, etc.)
+- Be conversational and helpful
+- If some data is missing or contains errors, handle it gracefully
+- Keep the response concise but informative`;
+
+      const result = await generateText({
+        model: openai('gpt-4o-mini'),
+        prompt,
+        temperature: 0.7,
+      });
+
+      // Parse the LLM response
+      try {
+        const parsedResponse = JSON.parse(result.text);
+        return {
+          formattedResponse: parsedResponse.formattedResponse || "Unable to format response",
+          highlights: Array.isArray(parsedResponse.highlights) ? parsedResponse.highlights : [],
+          recommendations: Array.isArray(parsedResponse.recommendations) ? parsedResponse.recommendations : undefined
+        };
+      } catch (parseError) {
+        // Fallback if JSON parsing fails
+        return {
+          formattedResponse: result.text,
+          highlights: [],
+          recommendations: undefined
+        };
+      }
+
+    } catch (error) {
+      // Fallback to simple formatting if LLM call fails
+      const parts: string[] = [];
+      const highlights: string[] = [];
+
+      if (weather && weather.temperature > 0) {
+        parts.push(`🌤️ Weather: ${weather.summary}`);
+        highlights.push(`${weather.temperature}°C in ${weather.city}`);
+      }
+
+      if (time) {
+        parts.push(`🕐 Time: ${time.summary}`);
+        highlights.push(time.localTime);
+      }
+
+      if (holiday) {
+        parts.push(`🎉 Holiday: ${holiday.summary}`);
+        if (holiday.holidayName) {
+          highlights.push(holiday.holidayName);
+        }
+      }
+
+      return {
+        formattedResponse: parts.length > 0 ? parts.join('\n\n') : "Sorry, I couldn't process the geographic information.",
+        highlights,
+        recommendations: undefined
+      };
+    }
+  }
+});
