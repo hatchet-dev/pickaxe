@@ -209,12 +209,10 @@ export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>>
       picked.map(({ name, input }) => ({ workflow: name, input }))
     );
 
-    console.log("RESULTS", results);
-
     // 3) zip back into the correctly typed union
     const zipped = picked.map(({ name, input }, i) => ({
       name,
-      output: results[i][name][name], // FIXME: this is a hack to get the output of the tool
+      output: results[i][name], // FIXME: this is a hack to get the output of the tool
       args: input,
     })) as ToolResultMap<T>[];
 
