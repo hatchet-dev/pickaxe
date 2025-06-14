@@ -120,12 +120,12 @@ describe('TemplateFetcher', () => {
       expect(result[0]).toEqual({
         name: 'template1.txt',
         content: 'Content 1',
-        path: path.join('/path/to/templates', 'template1.txt'),
+        path: 'template1.txt',
       });
       expect(result[1]).toEqual({
         name: 'template2.txt',
         content: 'Content 2',
-        path: path.join('/path/to/templates', 'template2.txt'),
+        path: 'template2.txt',
       });
     });
 
@@ -159,24 +159,41 @@ describe('TemplateFetcher', () => {
       ).rejects.toThrow('Failed to fetch template from local path: File not found');
     });
 
-    it('should skip non-file entries in directory', async () => {
-      const mockStat = { isDirectory: () => true } as any;
-      const mockEntries = [
-        { name: 'template.txt', isFile: () => true },
-        { name: 'subdirectory', isFile: () => false },
+    it('should recursively process subdirectories', async () => {
+      const mockRootStat = { isDirectory: () => true } as any;
+      const mockRootEntries = [
+        { name: 'template.txt', isFile: () => true, isDirectory: () => false },
+        { name: 'subdirectory', isFile: () => false, isDirectory: () => true },
+      ] as any[];
+      
+      const mockSubEntries = [
+        { name: 'nested.txt', isFile: () => true, isDirectory: () => false },
       ] as any[];
 
-      mockedFs.stat.mockResolvedValueOnce(mockStat);
-      mockedFs.readdir.mockResolvedValueOnce(mockEntries);
-      mockedFs.readFile.mockResolvedValueOnce('Content');
+      mockedFs.stat.mockResolvedValueOnce(mockRootStat);
+      mockedFs.readdir
+        .mockResolvedValueOnce(mockRootEntries)
+        .mockResolvedValueOnce(mockSubEntries);
+      mockedFs.readFile
+        .mockResolvedValueOnce('Root Content')
+        .mockResolvedValueOnce('Nested Content');
 
       const result = await fetcher.fetchTemplate({
         type: 'local',
         path: '/path/to/templates',
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('template.txt');
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        name: 'template.txt',
+        content: 'Root Content',
+        path: 'template.txt',
+      });
+      expect(result[1]).toEqual({
+        name: 'nested.txt',
+        content: 'Nested Content',
+        path: path.join('subdirectory', 'nested.txt'),
+      });
     });
   });
 

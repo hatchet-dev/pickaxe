@@ -69,20 +69,7 @@ export class TemplateFetcher {
       const files: TemplateFile[] = [];
       
       if (stat.isDirectory()) {
-        const entries = await fs.readdir(templatePath, { withFileTypes: true });
-        
-        for (const entry of entries) {
-          if (entry.isFile()) {
-            const filePath = path.join(templatePath, entry.name);
-            const content = await fs.readFile(filePath, 'utf-8');
-            
-            files.push({
-              name: entry.name,
-              content,
-              path: filePath,
-            });
-          }
-        }
+        await this.readDirectoryRecursively(templatePath, templatePath, files);
       } else {
         // Single file
         const content = await fs.readFile(templatePath, 'utf-8');
@@ -96,6 +83,33 @@ export class TemplateFetcher {
       return files;
     } catch (error) {
       throw new Error(`Failed to fetch template from local path: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async readDirectoryRecursively(
+    currentPath: string, 
+    basePath: string, 
+    files: TemplateFile[]
+  ): Promise<void> {
+    const entries = await fs.readdir(currentPath, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(currentPath, entry.name);
+      
+      if (entry.isFile()) {
+        const content = await fs.readFile(fullPath, 'utf-8');
+        // Calculate relative path from the base template directory
+        const relativePath = path.relative(basePath, fullPath);
+        
+        files.push({
+          name: entry.name,
+          content,
+          path: relativePath,
+        });
+      } else if (entry.isDirectory()) {
+        // Recursively process subdirectories
+        await this.readDirectoryRecursively(fullPath, basePath, files);
+      }
     }
   }
 }

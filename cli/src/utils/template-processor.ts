@@ -99,4 +99,9 @@ export class TemplateProcessor {
   registerPartial(name: string, partial: string) {
     this.handlebars.registerPartial(name, partial);
   }
+
+  // Method to compile templates (for processing paths)
+  compile(template: string) {
+    return this.handlebars.compile(template);
+  }
 }

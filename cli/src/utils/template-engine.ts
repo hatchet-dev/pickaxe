@@ -37,7 +37,7 @@ export class TemplateEngine {
 
     // Write to disk if output directory is specified
     if (options.outputDir) {
-      await this.writeTemplates(processedTemplates, options.outputDir, options.force);
+      await this.writeTemplates(processedTemplates, context, options.outputDir, options.force);
     }
 
     return processedTemplates;
@@ -48,6 +48,7 @@ export class TemplateEngine {
    */
   private async writeTemplates(
     templates: ProcessedTemplate[],
+    context: TemplateContext,
     outputDir: string,
     force: boolean = false
   ): Promise<void> {
@@ -55,7 +56,16 @@ export class TemplateEngine {
     await fs.mkdir(outputDir, { recursive: true });
 
     for (const template of templates) {
-      const outputPath = path.join(outputDir, template.name);
+      // Process the entire path with Handlebars to support dynamic directory names
+      const pathTemplate = this.processor.compile(template.originalPath);
+      let processedPath = pathTemplate(context);
+      
+      // Remove .hbs extension from the processed path
+      if (processedPath.endsWith('.hbs')) {
+        processedPath = processedPath.slice(0, -4);
+      }
+      
+      const outputPath = path.join(outputDir, processedPath);
       
       // Check if file exists and force flag is not set
       if (!force) {

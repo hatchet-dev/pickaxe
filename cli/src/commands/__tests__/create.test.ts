@@ -40,12 +40,12 @@ describe('create command', () => {
   });
 
   describe('successful project creation', () => {
-    it('should create a new TypeScript project with provided name', async () => {
+    it('should create a new geo project with provided name', async () => {
       const projectConfig = {
         name: 'test-project',
         description: 'A test project',
         author: 'Test Author',
-        template: 'typescript'
+        template: 'geo'
       };
 
       // Mock that directory doesn't exist (fs.access throws)
@@ -74,8 +74,8 @@ describe('create command', () => {
           name: 'template',
           choices: [
             expect.objectContaining({
-              title: 'TypeScript',
-              value: 'typescript'
+              title: 'Geo Agent',
+              value: 'geo'
             })
           ]
         })
@@ -84,7 +84,7 @@ describe('create command', () => {
       expect(mockedProcessTemplate).toHaveBeenCalledWith(
         {
           type: 'local',
-          path: expect.stringContaining(path.join('templates', 'typescript'))
+          path: expect.stringContaining(path.join('templates', 'geo'))
         },
         projectConfig,
         {
@@ -291,7 +291,8 @@ describe('create command', () => {
       expect(mockConsoleLog).toHaveBeenCalledWith('\n📝 Next steps:');
       expect(mockConsoleLog).toHaveBeenCalledWith('1. cd awesome-project');
       expect(mockConsoleLog).toHaveBeenCalledWith('2. npm install');
-      expect(mockConsoleLog).toHaveBeenCalledWith('3. npm run dev');
+      expect(mockConsoleLog).toHaveBeenCalledWith('3. Configure your environment variables');
+      expect(mockConsoleLog).toHaveBeenCalledWith('4. npm run dev');
     });
   });
 });

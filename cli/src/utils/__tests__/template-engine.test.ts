@@ -35,10 +35,14 @@ describe('TemplateEngine', () => {
       processTemplates: jest.fn(),
       registerHelper: jest.fn(),
       registerPartial: jest.fn(),
+      compile: jest.fn(),
     } as any;
 
     MockedTemplateFetcher.mockImplementation(() => mockFetcher);
     MockedTemplateProcessor.mockImplementation(() => mockProcessor);
+
+    // Setup default compile mock behavior
+    mockProcessor.compile.mockReturnValue((context: any) => 'test-path');
 
     engine = new TemplateEngine();
   });
@@ -104,6 +108,7 @@ describe('TemplateEngine', () => {
 
       mockFetcher.fetchTemplate.mockResolvedValueOnce(mockTemplates);
       mockProcessor.processTemplates.mockReturnValueOnce(mockProcessedTemplates);
+      mockProcessor.compile.mockReturnValue((context: any) => 'template.txt');
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.access.mockRejectedValue(new Error('File not found')); // File doesn't exist
       mockedFs.writeFile.mockResolvedValue(undefined);
@@ -174,6 +179,7 @@ describe('TemplateEngine', () => {
 
       mockFetcher.fetchTemplate.mockResolvedValueOnce(mockTemplates);
       mockProcessor.processTemplates.mockReturnValueOnce(mockProcessedTemplates);
+      mockProcessor.compile.mockReturnValue((context: any) => 'template.txt');
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.access.mockResolvedValue(undefined); // File exists
       mockedFs.writeFile.mockResolvedValue(undefined);
@@ -210,6 +216,7 @@ describe('TemplateEngine', () => {
 
       mockFetcher.fetchTemplate.mockResolvedValueOnce(mockTemplates);
       mockProcessor.processTemplates.mockReturnValueOnce(mockProcessedTemplates);
+      mockProcessor.compile.mockReturnValue((context: any) => 'components/Button.tsx');
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.access.mockRejectedValue(new Error('File not found')); // File doesn't exist
       mockedFs.writeFile.mockResolvedValue(undefined);
@@ -311,6 +318,7 @@ describe('processTemplate convenience function', () => {
       processTemplates: jest.fn().mockReturnValue(mockResult),
       registerHelper: jest.fn(),
       registerPartial: jest.fn(),
+      compile: jest.fn().mockReturnValue((context: any) => 'test-path'),
     } as any;
 
     MockedTemplateFetcher.mockImplementation(() => localMockFetcher);
