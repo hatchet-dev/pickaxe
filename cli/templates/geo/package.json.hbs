@@ -7,13 +7,15 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node -r tsconfig-paths/register src/main.ts",
+    "trigger": "ts-node -r tsconfig-paths/register src/trigger.ts",
     "test": "jest",
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.1.10",
-    "@hatchet-dev/pickaxe": "^0.1.0",
+    "@hatchet-dev/pickaxe": "^0.1.2",
     "ai": "^4.3.16",
+    "dotenv": "^16.5.0",
     "zod": "^3.25.64"
   },
   "devDependencies": {

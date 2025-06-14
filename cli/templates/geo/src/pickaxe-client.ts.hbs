@@ -1,5 +1,9 @@
 import { Pickaxe } from "@hatchet-dev/pickaxe";
 import { openai } from "@ai-sdk/openai";
+import * as dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config();
 
 export const pickaxe = Pickaxe.init({
     defaultLanguageModel: openai("gpt-4o-mini"),

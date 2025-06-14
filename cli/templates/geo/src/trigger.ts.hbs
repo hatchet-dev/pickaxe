@@ -1,0 +1,107 @@
+import * as readline from 'readline';
+import { {{camelCase name}}Agent } from './agents/{{kebabCase name}}/{{kebabCase name}}.agent';
+
+const presetQueries = {
+  '1': "What's the current weather in New York City?",
+  '2': "What time is it in Tokyo right now?",
+  '3': "Are there any holidays today in the United States?",
+  '4': "Tell me about the weather forecast for London this week",
+  '5': "What's the time difference between Los Angeles and Sydney?",
+  '6': "What holidays are coming up this month in Canada?"
+};
+
+function showMenu() {
+  console.log('\n🎯 {{name}} Agent CLI');
+  console.log('='.repeat(40));
+  console.log('\nPreset Queries:');
+  
+  Object.entries(presetQueries).forEach(([key, query]) => {
+    console.log(`  ${key}. ${query}`);
+  });
+  
+  console.log('\n  c. Custom query');
+  console.log('  h. Show this menu');
+  console.log('  q. Quit');
+  console.log('\n' + '='.repeat(40));
+}
+
+async function runAgent(query: string) {
+  const startTime = Date.now();
+  console.log(`\n🤖 Running query: "${query}"`);
+  console.log('⏳ Processing...\n');
+
+  try {
+    const result = await {{camelCase name}}Agent.run(query);
+    const duration = Date.now() - startTime;
+
+    console.log(`✅ Completed in ${duration}ms\n`);
+    console.log('📄 Result:');
+    console.log('-'.repeat(50));
+    console.log(typeof result === 'string' ? result : JSON.stringify(result, null, 2));
+    console.log('-'.repeat(50));
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.log(`❌ Failed after ${duration}ms`);
+    console.log(`Error: ${error instanceof Error ? error.message : 'Unknown error'}\n`);
+  }
+}
+
+function prompt(rl: readline.Interface, message: string): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question(message, (answer) => resolve(answer.trim()));
+  });
+}
+
+async function main() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  console.log('\n🚀 Welcome to the {{name}} Agent CLI!');
+  console.log('This tool helps you interact with location-based services including weather, time, and holidays.\n');
+
+  showMenu();
+
+  while (true) {
+    const choice = await prompt(rl, '\n🔍 Select an option (1-6, c, h, q): ');
+
+    switch (choice.toLowerCase()) {
+      case 'q':
+        console.log('\n👋 Goodbye!');
+        rl.close();
+        return;
+      
+      case 'h':
+        showMenu();
+        break;
+      
+      case 'c':
+        const customQuery = await prompt(rl, '\n💭 Enter your custom query: ');
+        if (customQuery) {
+          await runAgent(customQuery);
+        } else {
+          console.log('❌ No query provided.');
+        }
+        break;
+      
+      default:
+        if (presetQueries[choice as keyof typeof presetQueries]) {
+          await runAgent(presetQueries[choice as keyof typeof presetQueries]);
+        } else {
+          console.log('❌ Invalid option. Please try again.');
+        }
+    }
+  }
+}
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n\n👋 Goodbye!');
+  process.exit(0);
+});
+
+// Run the CLI
+if (require.main === module) {
+  main().catch(console.error);
+}

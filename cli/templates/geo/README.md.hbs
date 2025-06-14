@@ -1,45 +1,107 @@
 # {{name}}
 
-A fullstack Pickaxe project with agents and tools.
+A geographic information agent built with Pickaxe that provides weather, time, and holiday information for any location.
 
 ## Getting Started
 
 1. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
-2. Set up your environment variables (if needed):
+2. Set up your environment variables:
 ```bash
 cp .env.example .env
 ```
 
-3. Build the project:
+Edit `.env` and add your API keys (the Hatchet token can be generated at [Hatchet Cloud](https://cloud.onhatchet.run) or by [self-hosting Hatchet]((https://docs.hatchet.run/self-hosting))).
+
+3. Run the interactive agent:
 ```bash
-npm run build
+pnpm run trigger
 ```
 
-4. Run the project:
+## Usage
+
+### Interactive CLI
+
+The easiest way to interact with the {{name}} agent is through the interactive CLI:
+
 ```bash
-npm start
+pnpm run trigger
 ```
 
-## Development
+This will launch an interactive menu where you can:
+- Choose from preset queries (weather, time, holidays)
+- Enter custom queries
+- View results and save them to markdown files
 
-Run in development mode:
+### Development Mode
+
+Run the agent in development mode:
 ```bash
-npm run dev
+pnpm run dev
+```
+
+### Build and Run
+
+Build and run the compiled version:
+```bash
+pnpm run build
+pnpm start
 ```
 
 ## Project Structure
 
 - `src/agents/{{kebabCase name}}/` - Main agent implementation
 - `src/agents/{{kebabCase name}}/tools/` - Tools used by the agent
-- `src/main.ts` - Entry point
+  - `weather.ts` - Weather information using Open-Meteo API
+  - `time.ts` - Time information using WorldTimeAPI
+  - `holiday.ts` - Holiday information using Nager.Date API
+- `src/trigger.ts` - Interactive CLI for running the agent
+- `src/main.ts` - Entry point for standard execution
 - `src/pickaxe-client.ts` - Pickaxe client configuration
+- `results/` - Generated result files from trigger sessions
 
 ## Available Tools
 
-- **weather**: Get weather information for a city
-- **time**: Get current time for a city
-- **holiday**: Get current holiday for a country
+### Weather Tool
+Get current weather and forecasts for any city worldwide.
+- Uses Open-Meteo API (no API key required)
+- Provides temperature, conditions, humidity, wind speed
+- Example: "What's the weather in Tokyo?"
+
+### Time Tool  
+Get current time and timezone information for any location.
+- Uses WorldTimeAPI (no API key required)
+- Example: "What time is it in London?"
+
+### Holiday Tool
+Get information about public holidays in any country.
+- Uses Nager.Date API (no API key required)
+- Supports current holidays and upcoming holidays
+- Example: "What holidays are coming up in Canada?"
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OPENAI_API_KEY` | Yes | Your OpenAI API key for the language model |
+| `HATCHET_CLIENT_TOKEN` | Yes | Your Hatchet API token for orchestration |
+
+## Example Queries
+
+- "What's the current weather in Paris?"
+- "What time is it in Sydney right now?"
+- "Are there any holidays today in Germany?"
+- "Tell me about the weather forecast for New York this week"
+- "What's the time difference between Los Angeles and Tokyo?"
+
+## Scripts
+
+- `pnpm run trigger` - Run the interactive agent CLI
+- `pnpm run dev` - Run in development mode
+- `pnpm run build` - Build the project
+- `pnpm start` - Run the built project
+- `pnpm test` - Run tests
+- `pnpm run lint` - Run linting
