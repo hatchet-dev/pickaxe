@@ -1,6 +1,6 @@
 {
   "name": "@hatchet-dev/pickaxe",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Pickaxe SDK for Hatchet",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
     "lint": "eslint . --ext .ts",
     "dump-version": "node -e \"console.log('export const HATCHET_VERSION = \\'' + require('./package.json').version + '\\';');\" > src/version.ts",
     "tsc:build": "npm run dump-version && tsc && resolve-tspaths",
-    "prepublish": "cp package.json dist/package.json; cp README.md dist/",
+    "prepublish": "cp package.json dist/package.json; cp README.md dist/; node -e \"const pkg=JSON.parse(require('fs').readFileSync('dist/package.json','utf8')); pkg.main='index.js'; pkg.types='index.d.ts'; require('fs').writeFileSync('dist/package.json',JSON.stringify(pkg,null,2));\"",
     "publish:ci": "rm -rf ./dist && npm run dump-version && npm run tsc:build && npm run prepublish && cd dist && npm publish --access public --no-git-checks"
   },
   "dependencies": {
