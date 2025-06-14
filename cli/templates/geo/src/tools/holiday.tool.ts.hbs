@@ -54,7 +54,7 @@ export const holiday = pickaxe.tool({
       if (upcomingHoliday) {
         const holidayDate = new Date(upcomingHoliday.date);
         return {
-          holiday: `Next holiday in ${input.country}: ${upcomingHoliday.localName || upcomingHoliday.name} on ${holidayDate.toLocalDateString()}`
+          holiday: `Next holiday in ${input.country}: ${upcomingHoliday.localName || upcomingHoliday.name} on ${holidayDate.toLocaleDateString()}`
         };
       }
       
