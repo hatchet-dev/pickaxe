@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 
 export async function listAgents(): Promise<string[]> {
-  const agentsDir = path.join(process.cwd(), 'agents');
+  const agentsDir = path.join(process.cwd(), 'src', 'agents');
   
   try {
     await fs.access(agentsDir);
@@ -17,7 +17,7 @@ export async function listAgents(): Promise<string[]> {
 }
 
 export async function getAgentInfo(name: string): Promise<{ name: string; description: string; location: string } | null> {
-  const agentDir = path.join(process.cwd(), 'agents', name);
+  const agentDir = path.join(process.cwd(), 'src', 'agents', name);
   const agentFile = path.join(agentDir, `${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.agent.ts`);
   
   try {

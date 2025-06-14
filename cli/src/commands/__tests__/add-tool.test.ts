@@ -56,6 +56,7 @@ describe('add-tool command', () => {
       
       // Verify it shows the file creation location
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('📁 File created:'));
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('src/tools'));
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('my-tool.ts'));
     });
 
@@ -109,7 +110,7 @@ describe('add-tool command', () => {
           category: 'data'
         }),
         expect.objectContaining({
-          outputDir: expect.stringContaining('tools'),
+          outputDir: expect.stringMatching(/src\/tools$/),
           force: false
         })
       );

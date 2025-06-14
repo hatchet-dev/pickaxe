@@ -16,7 +16,7 @@ export async function createAgent(name: string, options: { model?: string; descr
     }
     
     // Verify agents directory exists
-    const agentsDir = path.join(process.cwd(), 'agents');
+    const agentsDir = path.join(process.cwd(), 'src', 'agents');
     await ensureAgentsDirectory(agentsDir, options.silent);
     
     // Get agent configuration - use provided description or prompt interactively

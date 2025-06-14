@@ -17,7 +17,7 @@ export async function createTool(name: string, options: { category?: string; des
     }
     
     // Verify tools directory exists
-    const toolsDir = path.join(process.cwd(), 'tools');
+    const toolsDir = path.join(process.cwd(), 'src', 'tools');
     await ensureToolsDirectory(toolsDir, options.silent);
     
     // Get tool configuration - use provided description or prompt interactively
