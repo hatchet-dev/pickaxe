@@ -14,7 +14,7 @@
     "test:coverage": "jest --coverage",
     "dump-version": "node -e \"console.log('export const HATCHET_VERSION = \\'' + require('./package.json').version + '\\';');\" > src/version.ts",
     "tsc:build": "npm run dump-version && tsc && resolve-tspaths",
-    "prepublish": "cp package.json dist/package.json; cp README.md dist/; node -e \"const pkg=JSON.parse(require('fs').readFileSync('dist/package.json','utf8')); pkg.main='index.js'; pkg.bin.pickaxe='./index.js'; require('fs').writeFileSync('dist/package.json',JSON.stringify(pkg,null,2));\"",
+    "prepublish": "cp package.json dist/package.json; cp README.md dist/; cp -r templates dist/; node -e \"const pkg=JSON.parse(require('fs').readFileSync('dist/package.json','utf8')); pkg.main='index.js'; pkg.bin.pickaxe='./index.js'; require('fs').writeFileSync('dist/package.json',JSON.stringify(pkg,null,2));\"",
     "publish:ci": "rm -rf ./dist && npm run dump-version && npm run tsc:build && npm run prepublish && cd dist && npm publish --access public --no-git-checks"
   },
   "keywords": [

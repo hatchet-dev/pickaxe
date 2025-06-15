@@ -1,7 +1,7 @@
 import prompts from "prompts";
 import * as path from "path";
 import { promises as fs } from "fs";
-import { processTemplate } from "../utils";
+import { processTemplate, getTemplatePath } from "../utils";
 
 interface ProjectConfig {
   name: string;
@@ -36,14 +36,8 @@ export async function create(projectName?: string) {
       // Directory doesn't exist, continue
     }
 
-    // Process templates
-    const templatePath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "templates",
-      config.template
-    );
+    // Process templates - resolve template path for both dev and bundled environments
+    const templatePath = getTemplatePath(config.template, __dirname);
 
     await processTemplate({ type: "local", path: templatePath }, config, {
       outputDir,

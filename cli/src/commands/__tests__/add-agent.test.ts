@@ -1,6 +1,6 @@
 import { createAgent } from '../add-agent';
 import { promises as fs } from 'fs';
-import { processTemplate } from '../../utils';
+import { processTemplate, getTemplatePath } from '../../utils';
 
 // Mock dependencies
 jest.mock('fs', () => ({
@@ -12,6 +12,7 @@ jest.mock('fs', () => ({
 
 jest.mock('../../utils', () => ({
   processTemplate: jest.fn(),
+  getTemplatePath: jest.fn(),
 }));
 
 // Mock console methods
@@ -20,6 +21,7 @@ const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
 
 const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedProcessTemplate = processTemplate as jest.MockedFunction<typeof processTemplate>;
+const mockedGetTemplatePath = getTemplatePath as jest.MockedFunction<typeof getTemplatePath>;
 
 describe('add-agent command', () => {
   beforeEach(() => {
@@ -39,6 +41,7 @@ describe('add-agent command', () => {
       mockedFs.access.mockRejectedValueOnce(new Error('Directory does not exist'));
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
+      mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/agent');
 
       const result = await createAgent('my-agent', { 
         description: 'Sample agent description',
@@ -63,6 +66,7 @@ describe('add-agent command', () => {
       mockedFs.access.mockRejectedValueOnce(new Error('Directory does not exist'));
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
+      mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/agent');
 
       const result = await createAgent('my-agent', { 
         description: 'Sample agent description',

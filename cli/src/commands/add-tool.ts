@@ -1,7 +1,7 @@
 import prompts from 'prompts';
 import * as path from 'path';
 import { promises as fs } from 'fs';
-import { processTemplate } from '../utils';
+import { processTemplate, getTemplatePath } from '../utils';
 
 interface ToolConfig {
   name: string;
@@ -29,9 +29,9 @@ export async function createTool(name: string, options: { category?: string; des
         }
       : await getToolConfig(name, options.category);
     
-    // Process templates - use absolute path from CLI tool location
+    // Process templates - resolve template path for both dev and bundled environments
     const outputDir = toolsDir;
-    const templatesDir = path.join(__dirname, '..', '..', 'templates', 'tool');
+    const templatesDir = getTemplatePath('tool', __dirname);
     
     await processTemplate(
       { type: 'local', path: templatesDir },

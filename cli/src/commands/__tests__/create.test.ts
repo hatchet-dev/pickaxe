@@ -2,7 +2,7 @@ import { create } from '../create';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import prompts from 'prompts';
-import { processTemplate } from '../../utils';
+import { processTemplate, getTemplatePath } from '../../utils';
 
 // Mock dependencies
 jest.mock('fs', () => ({
@@ -14,6 +14,7 @@ jest.mock('fs', () => ({
 jest.mock('prompts');
 jest.mock('../../utils', () => ({
   processTemplate: jest.fn(),
+  getTemplatePath: jest.fn(),
 }));
 
 // Mock console methods
@@ -24,6 +25,7 @@ const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation();
 const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedPrompts = prompts as jest.MockedFunction<typeof prompts>;
 const mockedProcessTemplate = processTemplate as jest.MockedFunction<typeof processTemplate>;
+const mockedGetTemplatePath = getTemplatePath as jest.MockedFunction<typeof getTemplatePath>;
 
 describe('create command', () => {
   beforeEach(() => {
@@ -56,6 +58,7 @@ describe('create command', () => {
 
       // Mock successful template processing
       mockedProcessTemplate.mockResolvedValueOnce([]);
+      mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/geo');
 
       await create('test-project');
 
@@ -84,7 +87,7 @@ describe('create command', () => {
       expect(mockedProcessTemplate).toHaveBeenCalledWith(
         {
           type: 'local',
-          path: expect.stringContaining(path.join('templates', 'geo'))
+          path: '/mock/templates/geo'
         },
         projectConfig,
         {

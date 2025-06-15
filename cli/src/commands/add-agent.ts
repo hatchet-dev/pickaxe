@@ -1,7 +1,7 @@
 import prompts from 'prompts';
 import * as path from 'path';
 import { promises as fs } from 'fs';
-import { processTemplate } from '../utils';
+import { processTemplate, getTemplatePath } from '../utils';
 
 interface AgentConfig {
   name: string;
@@ -24,9 +24,9 @@ export async function createAgent(name: string, options: { model?: string; descr
       ? { name, description: options.description }
       : await getAgentConfig(name);
     
-    // Process templates - use absolute path from CLI tool location
+    // Process templates - resolve template path for both dev and bundled environments
     const outputDir = agentsDir;
-    const templatesDir = path.join(__dirname, '..', '..', 'templates', 'agent');
+    const templatesDir = getTemplatePath('agent', __dirname);
     
     await processTemplate(
       { type: 'local', path: templatesDir },

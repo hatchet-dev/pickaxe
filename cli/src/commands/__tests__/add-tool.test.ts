@@ -1,6 +1,6 @@
 import { createTool } from '../add-tool';
 import { promises as fs } from 'fs';
-import { processTemplate } from '../../utils';
+import { processTemplate, getTemplatePath } from '../../utils';
 
 // Mock dependencies
 jest.mock('fs', () => ({
@@ -12,6 +12,7 @@ jest.mock('fs', () => ({
 
 jest.mock('../../utils', () => ({
   processTemplate: jest.fn(),
+  getTemplatePath: jest.fn(),
 }));
 
 // Mock console methods
@@ -20,6 +21,7 @@ const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
 
 const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedProcessTemplate = processTemplate as jest.MockedFunction<typeof processTemplate>;
+const mockedGetTemplatePath = getTemplatePath as jest.MockedFunction<typeof getTemplatePath>;
 
 describe('add-tool command', () => {
   beforeEach(() => {
@@ -39,6 +41,7 @@ describe('add-tool command', () => {
       mockedFs.access.mockRejectedValueOnce(new Error('Directory does not exist'));
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
+      mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/tool');
 
       const result = await createTool('my-tool', { 
         description: 'A sample tool for testing',
@@ -64,6 +67,7 @@ describe('add-tool command', () => {
       mockedFs.access.mockRejectedValueOnce(new Error('Directory does not exist'));
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
+      mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/tool');
 
       const result = await createTool('my-tool', { 
         description: 'A sample tool for testing',
@@ -79,6 +83,7 @@ describe('add-tool command', () => {
       mockedFs.access.mockRejectedValueOnce(new Error('Directory does not exist'));
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
+      mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/tool');
 
       const result = await createTool('my-tool', { 
         description: 'A sample tool',
@@ -92,6 +97,7 @@ describe('add-tool command', () => {
       mockedFs.access.mockRejectedValueOnce(new Error('Directory does not exist'));
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
+      mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/tool');
 
       await createTool('my-tool', { 
         description: 'A sample tool',
@@ -102,7 +108,7 @@ describe('add-tool command', () => {
       expect(mockedProcessTemplate).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'local',
-          path: expect.stringMatching(/templates\/tool$/)
+          path: '/mock/templates/tool'
         }),
         expect.objectContaining({
           name: 'my-tool',
