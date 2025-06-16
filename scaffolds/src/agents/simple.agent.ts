@@ -1,6 +1,6 @@
 import { pickaxe } from "@/pickaxe-client";
-import { weather } from "./tools/weather";
-import { holiday, time } from "./tools/time";
+import { weather } from "../tools/weather.tool";
+import { holiday, time } from "../tools/time.tool";
 import z from "zod";
 
 
@@ -15,12 +15,6 @@ const SimpleAgentOutput = z.object({
 export const simpleToolbox = pickaxe.toolbox({
   tools: [weather, time, holiday],
 });
-
-function assertNever(x: never): never {
-  // will only be hit at run time if the exhaustive check fails
-  throw new Error(`Unhandled toolbox result: ${(x as any).name}`);
-}
-
 
 export const simpleAgent = pickaxe.agent({
   name: "simple-agent",
