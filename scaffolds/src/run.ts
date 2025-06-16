@@ -1,4 +1,4 @@
-import { simpleAgent } from "./agents/simple/agent";
+import { simpleAgent } from "./agents/simple.agent";
 
 async function main() {
   const result = await simpleAgent.run({
