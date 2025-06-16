@@ -12,23 +12,34 @@ Pickaxe is a library for building distributed agents, built on top of [Hatchet](
 
 - **Distributed by default** - all agents and tools run across a fleet of machines, where scheduling is handled gracefully by Hatchet
 - **Scalable** - Pickaxe agents allow simple configuration for retries, rate limiting, concurrency control, and much more
-- **Durable by default** - all tools called by the agent are sent through a durable message boundary
+- **Durable by default** - all tools called by the agent are sent through a durable message boundary this means they can recovery from failure
 - **Agnostic to execution pattern** - Pickaxe agents can be written as loops, scatter/gather workflows, or directed acyclic graphs
 
 ## Get started
 
 Getting started is as easy as two commands:
 
+First, install the cli:
 ```
 pnpm i -g @hatchet-dev/pickaxe-cli
+```
+
+Then, create your project:
+```
 pickaxe create first-agent
 ```
 
 ## Concepts
 
-- **Agents** - an agent is simply a loop that calls **tools**
-- **Toolbox** - a collection of tools that are available to an agent
+### Agents - Determine what things to do
+First, we need to define what we mean as "agency" -- for most real-world use cases this means a non-deterministic execution path, usually controlled by an LLM. This constrained definition allows us to create complex systems that can solve problems with reasonable constraints to deliver a safe and cost effecive service.
+
+The simpliest agents are a series of *tool* calls where an LLM has the agency to pick the right tool for the request.
+More often, these calls are wrapped in a loop where an LLM will evaluate an exit condition -- for example, if there is enough context for a search query.
+
+### Tools - The things to do 
 - **Tools** - a tool is a function available to an agent. A tool can call other tools, agents, or integrations.
+- **Toolbox** - a collection of tools that are available to an agent with convience methods for tool calling with an LLM
 - **Integrations** - an integration is a third-party API call made by a tool
 
 ## Is Pickaxe a framework?
@@ -41,13 +52,17 @@ However, Pickaxe contains opinions on best practices for deploying agents into p
 
 When writing agents with Pickaxe, it's useful to follow these rules:
 
-1. Agents should be **stateless reducers** with **no side effects**. They should not depend on external API calls, database calls, or local disk calls; their entire state should be determined by the results of their tool calls. See the [technical deep-dive](#technical-deep-dive) for more information.
+1. Agents control the shape of work, but do not do any work themselves.
 
-2. All quanta of work should be invoked as a task or a tool call.
+2. Agents should be **stateless reducers** with **no side effects**. They should not directly make any external API calls, database calls, or local disk calls; their entire state should be determined by the results of their tool calls. See the [technical deep-dive](#technical-deep-dive) for more information.
+
+3. All quanta of work should be invoked as a task or a tool call.
+
+4. 
 
 ## Technical Deep-Dive
 
-Pickaxe is a utility layer built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). Hatchet is a platform for async processing and background jobs, with features like:
+Pickaxe is a utility layer that extends [Hatchet](https://github.com/hatchet-dev/hatchet). Hatchet is a platform for async processing and background jobs, with features like:
 
 - Queues
 - Task Orchestration (DAGs and durable execution)
@@ -55,6 +70,8 @@ Pickaxe is a utility layer built on top of [Hatchet](https://github.com/hatchet-
 - Scheduling (cron jobs and scheduled tasks)
 - Task routing (sticky execution and affinity)
 - Event triggers and listeners
+
+Since Pickaxe is built on Hatchet, it is trivial to add these more advanced features as your requirements evolve over time.
 
 It is built on the concept of a **durable task queue**, which means that every task which gets called in Hatchet is stored in a database. This is useful because tasks can easily be replayed and recover from failure, even when the underlying hardware crashes. Another way to look at it: Hatchet makes _distributed systems incredibly easy to deploy and maintain_.
 
