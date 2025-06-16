@@ -12,9 +12,9 @@ Pickaxe is a library for building fault-tolerant agents, built on top of [Hatche
 
 Pickaxe agents are:
 
-- **💻 Code-first** - Pickaxe agents are defined as code and are designed to integrate with your business logic.
+- **💻 Code-first** - agents are defined as code and are designed to integrate with your business logic.
 - **🌐 Distributed** - all agents and tools run across a fleet of machines, where scheduling is handled gracefully by Pickaxe. When your underlying machine fails, Pickaxe takes care of rescheduling and resuming the agent on a different machine.
-- **⚙️ Configurable** - Pickaxe agents allow simple configuration for retries, rate limiting, concurrency control, and much more
+- **⚙️ Configurable** - simple configuration for retries, rate limiting, concurrency control, and much more
 
 ## Get started
 
