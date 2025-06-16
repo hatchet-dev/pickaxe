@@ -6,14 +6,15 @@
 </a>
 </div>
 
-## Pickaxe: a Typescript library for building distributed agents
+## Pickaxe: a Typescript library for building fault-tolerant agents
 
-Pickaxe is a library for building distributed agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). Pickaxe agents are:
+Pickaxe is a library for building fault-tolerant agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It handles the complexies of durable execution, queueing and scheduling so you can focus on building your application.
 
-- **Distributed by default** - all agents and tools run across a fleet of machines, where scheduling is handled gracefully by Hatchet
-- **Scalable** - Pickaxe agents allow simple configuration for retries, rate limiting, concurrency control, and much more
-- **Durable by default** - all tools called by the agent are sent through a durable message boundary
-- **Agnostic to execution pattern** - Pickaxe agents can be written as loops, scatter/gather workflows, or directed acyclic graphs
+Pickaxe agents are:
+
+- **💻 Code-first** - Pickaxe agents are defined as code and are designed to integrate with your business logic.
+- **🌐 Distributed** - all agents and tools run across a fleet of machines, where scheduling is handled gracefully by Pickaxe. When your underlying machine fails, Pickaxe takes care of rescheduling and resuming the agent on a different machine.
+- **⚙️ Configurable** - Pickaxe agents allow simple configuration for retries, rate limiting, concurrency control, and much more
 
 ## Get started
 
@@ -26,16 +27,45 @@ pickaxe create first-agent
 
 ## Concepts
 
-- **Agents** - an agent is simply a loop that calls **tools**
+- **Agents** - an agent is simply a function that calls **tools**
 - **Toolbox** - a collection of tools that are available to an agent
 - **Tools** - a tool is a function available to an agent. A tool can call other tools, agents, or integrations.
 - **Integrations** - an integration is a third-party API call made by a tool
 
-## Is Pickaxe a framework?
+## Use-Cases and Patterns
 
-Yes and no. Pickaxe is **not opinionated** on how you should structure your LLM calls, business logic, prompts, or contexts. It is designed to be extended and modified -- for example, you could build your own agent library on top of Pickaxe.
+- long-running agents
+- (data enrichment) parallel execution
+- resumeable/human-in-the-loop
+- event-driven systems
 
-However, Pickaxe contains opinions on best practices for deploying agents into production, and lots of the decisions in the project are designed with these best practices in mind. See [agent best practices](#agent-best-practices) for more information.
+## Comparison to Existing Tools
+
+### vs Frameworks (Mastra, Voltagent)
+
+Pickaxe is **not a framework**. It is not opinionated on how you structure your LLM calls, business logic, prompts, or context; we expect you to write these yourself (though Pickaxe does have a few utilities for tool-picking and bundles the AI SDK for calling LLMs).
+
+Pickaxe is designed to be extended and modified -- for example, you could build your own agent library on top of Pickaxe.
+
+### vs Temporal
+
+Pickaxe's execution model is most similar to [Temporal](https://github.com/temporalio/temporal):
+
+| Feature                                     | Pickaxe | Temporal |
+| ------------------------------------------- | ------- | -------- |
+| **Durable Execution**                       | ✅      | ✅       |
+| **Event Listeners within Workflows**        | ✅      | ✅       |
+| **Code-First Workflow Definitions**         | ✅      | ✅       |
+| **Cron Jobs**                               | ✅      | ✅       |
+| **One-Time Scheduling**                     | ✅      | ✅       |
+| **Flow Control**                            | ✅      | ✅       |
+| **Durable Sleep**                           | ✅      | ✅       |
+| **Global Rate Limits**                      | ✅      | ❌       |
+| **Event-Based Triggering**                  | ✅      | ❌       |
+| **Event Streaming**                         | ✅      | ❌       |
+| **DAG Support**                             | ✅      | ❌       |
+| **Priority Queues**                         | ✅      | ❌       |
+| **Sticky Assignment/Complex Routing Logic** | ✅      | ❌       |
 
 ## Agent Best Practices
 
@@ -45,18 +75,11 @@ When writing agents with Pickaxe, it's useful to follow these rules:
 
 2. All quanta of work should be invoked as a task or a tool call.
 
+3. Treat **LLM calls as libraries** and **own your data lookups**: applications should not permit unconstrained agentic tool calling with data lookup. All tool calls should validate user permissions and separate data lookup from LLM calls for security reasons.
+
 ## Technical Deep-Dive
 
-Pickaxe is a utility layer built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). Hatchet is a platform for async processing and background jobs, with features like:
-
-- Queues
-- Task Orchestration (DAGs and durable execution)
-- Flow Control (concurrency or rate limiting)
-- Scheduling (cron jobs and scheduled tasks)
-- Task routing (sticky execution and affinity)
-- Event triggers and listeners
-
-It is built on the concept of a **durable task queue**, which means that every task which gets called in Hatchet is stored in a database. This is useful because tasks can easily be replayed and recover from failure, even when the underlying hardware crashes. Another way to look at it: Hatchet makes _distributed systems incredibly easy to deploy and maintain_.
+Pickaxe is a utility layer built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It is built on the concept of a **durable task queue**, which means that every task which gets called in Hatchet is stored in a database. This is useful because tasks can easily be replayed and recover from failure, even when the underlying hardware crashes. Another way to look at it: Hatchet makes _distributed systems incredibly easy to deploy and maintain_.
 
 For agents, this is particularly useful because they are extremely long-running, and thus need to be resilient to hardware failure. Agents also need to manage third-party rate limits and need concurrency control to prevent the system from getting overwhelmed.
 
@@ -90,4 +113,4 @@ This execution model is much more powerful when there's a requirement to wait fo
 Beyond Hatchet, there are two other points of inspiration for Pickaxe:
 
 - [12-factor agents](https://github.com/humanlayer/12-factor-agents) -- this is the foundation for why Pickaxe advocates owning your control flow, context window, and prompts
-- Anthropic's [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) -- we have ensured that each pattern documented in this post are compatible with Pickaxe
+- Anthropic's [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) -- we have ensured that each pattern documented in Anthropic's post are compatible with Pickaxe
