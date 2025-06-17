@@ -158,8 +158,6 @@ Systems where LLMs plan and operate independently with tool usage, maintaining c
 
 ## Key Principles
 
-Based on Anthropic's recommendations:
-
 1. **Start Simple**: Begin with basic prompts and only add complexity when needed
 2. **Measure Performance**: Use comprehensive evaluation to guide iterations  
 3. **Composable Patterns**: These patterns can be combined for complex use cases

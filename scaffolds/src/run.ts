@@ -1,7 +1,7 @@
-import { simpleAgent } from "./agents/simple.agent";
+import { rootAgent } from "./agents/multi-agent.agent";
 
 async function main() {
-  const result = await simpleAgent.run({
+  const result = await rootAgent.run({
     message: "what holiday is it in toronto?",
   });
   console.log(JSON.stringify(result, null, 2));
