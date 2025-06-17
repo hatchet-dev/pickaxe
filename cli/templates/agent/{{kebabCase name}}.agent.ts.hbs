@@ -20,7 +20,7 @@ export const {{camelCase name}}Toolbox = pickaxe.toolbox({
 
 export const {{camelCase name}}Agent = pickaxe.agent({
   name: "{{kebabCase name}}-agent",
-  executionTimeout: "15m",
+  executionTimeout: "1m",
   inputSchema: {{pascalCase name}}AgentInput,
   outputSchema: {{pascalCase name}}AgentOutput,
   description: "{{description}}",
@@ -41,5 +41,3 @@ export const {{camelCase name}}Agent = pickaxe.agent({
     }
   },
 });
-
-export default [{{camelCase name}}Agent, {{camelCase name}}Toolbox];

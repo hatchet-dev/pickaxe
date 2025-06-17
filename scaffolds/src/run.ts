@@ -1,8 +1,11 @@
-import { simpleAgent } from "./agents/simple.agent";
+import { evaluatorOptimizerAgent } from "./agents/effective-agent-patterns/4.evaluator-optimizer/evaluator-optimizer.agent";
+
+
 
 async function main() {
-  const result = await simpleAgent.run({
-    message: "what holiday is it in toronto?",
+  const result = await evaluatorOptimizerAgent.run({
+    topic: "a post about parallelization in python",
+    targetAudience: "senior developers",
   });
   console.log(JSON.stringify(result, null, 2));
 }

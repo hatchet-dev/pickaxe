@@ -175,7 +175,7 @@ export class Pickaxe extends Hatchet {
 
     // deduplicate workflows by name
     const dedupedWorkflows = workflows.filter((workflow, index, self) =>
-      index === self.findIndex((t) => t.name === workflow.name)
+      index === self.findIndex((t) => t.name && t.name === workflow.name)
     );
 
     if (workflows.length > 0) {

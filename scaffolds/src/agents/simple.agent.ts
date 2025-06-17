@@ -18,7 +18,7 @@ export const simpleToolbox = pickaxe.toolbox({
 
 export const simpleAgent = pickaxe.agent({
   name: "simple-agent",
-  executionTimeout: "15m",
+  executionTimeout: "1m",
   inputSchema: SimpleAgentInput,
   outputSchema: SimpleAgentOutput,
   description: "A simple agent to get the weather and time",
@@ -45,6 +45,3 @@ export const simpleAgent = pickaxe.agent({
     }
   },
 });
-
-
-export default [simpleAgent, simpleToolbox];
