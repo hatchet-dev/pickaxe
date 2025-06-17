@@ -45,6 +45,3 @@ export const simpleAgent = pickaxe.agent({
     }
   },
 });
-
-
-export default [simpleAgent, simpleToolbox];

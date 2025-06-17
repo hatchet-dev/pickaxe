@@ -32,7 +32,7 @@ const salesAgent = pickaxe.agent({
 });
 
 
-const multiAgentToolbox = pickaxe.toolbox({
+export const multiAgentToolbox = pickaxe.toolbox({
   tools: [supportAgent, salesAgent],
 });
 
@@ -56,5 +56,3 @@ export const rootAgent = pickaxe.agent({
   },
 });
 
-
-export default [rootAgent, multiAgentToolbox];

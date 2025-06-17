@@ -38,6 +38,7 @@ const EvaluatorOptimizerAgentInput = z.object({
 
 const EvaluatorOptimizerAgentOutput = z.object({
   post: z.string(),
+  iterations: z.number(),
 });
 
 export const evaluatorOptimizerAgent = pickaxe.agent({
@@ -50,13 +51,14 @@ export const evaluatorOptimizerAgent = pickaxe.agent({
     
     let post: string | undefined;
     let feedback: string | undefined;
+    let iterations = 0;
 
     // ITERATIVE IMPROVEMENT LOOP
     // The loop continues until either:
     // 1. The evaluator determines the output is satisfactory (complete = true)
     // 2. We reach the maximum number of iterations (prevents infinite loops)
     for (let i = 0; i < 3; i++) {
-      
+      iterations++;
       // GENERATION STEP: Create or improve the content
       // The generator takes into account:
       // - Original requirements (topic, target audience)
@@ -86,6 +88,7 @@ export const evaluatorOptimizerAgent = pickaxe.agent({
       if (evaluatorResult.complete) {
         return {
           post: post,
+          iterations: iterations,
         };
       }
       
@@ -98,8 +101,7 @@ export const evaluatorOptimizerAgent = pickaxe.agent({
     
     return {
       post: post,
+      iterations: iterations,
     };
   },
 });
-
-export default [evaluatorOptimizerAgent]; 

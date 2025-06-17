@@ -87,5 +87,3 @@ export const routingAgent = pickaxe.agent({
     }
   },
 });
-
-export default [routingAgent];

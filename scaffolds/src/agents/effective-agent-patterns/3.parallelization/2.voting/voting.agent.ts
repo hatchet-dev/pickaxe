@@ -101,5 +101,3 @@ export const votingAgent = pickaxe.agent({
     };
   },
 });
-
-export default [votingAgent]; 

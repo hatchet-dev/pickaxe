@@ -77,5 +77,3 @@ export const promptChainingAgent = pickaxe.agent({
     }
   },
 });
-
-export default [promptChainingAgent];

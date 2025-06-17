@@ -78,4 +78,4 @@ export const sectioningAgent = pickaxe.agent({
   },
 });
 
-export default [sectioningAgent]; 
+ [sectioningAgent]; 

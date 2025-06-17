@@ -23,11 +23,13 @@ export const classificationTool = pickaxe.tool({
     const classification = await generateObject({
       model: pickaxe.defaultLanguageModel,
       prompt: `Classify the following text into one of the following categories: ${Object.values(Classification).join(", ")}: ${input.message}`,
-      schema: z.nativeEnum(Classification),
+      schema: z.object({
+        classification: z.nativeEnum(Classification),
+      }),
     });
 
     return {
-      classification: classification.object,
+      classification: classification.object.classification,
     };
   },
 });
