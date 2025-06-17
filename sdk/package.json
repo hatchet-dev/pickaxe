@@ -11,7 +11,8 @@
     "dump-version": "node -e \"console.log('export const HATCHET_VERSION = \\'' + require('./package.json').version + '\\';');\" > src/version.ts",
     "tsc:build": "npm run dump-version && tsc && resolve-tspaths",
     "prepublish": "cp package.json dist/package.json; cp README.md dist/; node -e \"const pkg=JSON.parse(require('fs').readFileSync('dist/package.json','utf8')); pkg.main='index.js'; pkg.types='index.d.ts'; require('fs').writeFileSync('dist/package.json',JSON.stringify(pkg,null,2));\"",
-    "publish:ci": "rm -rf ./dist && npm run dump-version && npm run tsc:build && npm run prepublish && cd dist && npm publish --access public --no-git-checks"
+    "publish:ci": "rm -rf ./dist && npm run dump-version && npm run tsc:build && npm run prepublish && cd dist && npm publish --access public --no-git-checks",
+    "docs": "typedoc"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.1.10",
@@ -30,6 +31,8 @@
     "jest": "^29.7.0",
     "resolve-tspaths": "^0.8.23",
     "ts-jest": "^29.1.2",
+    "typedoc": "^0.28.5",
+    "typedoc-plugin-markdown": "^4.6.4",
     "typescript": "^5.3.3"
   }
 }
