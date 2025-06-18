@@ -5,7 +5,7 @@
 </picture>
 </a>
 
-### Pickaxe: A Typescript library for orchestrating agents
+### Pickaxe: A Typescript library for orchestrating AI agents
 
 [![Docs](https://img.shields.io/badge/docs-pickaxe.hatchet.run-E64327)](https://pickaxe.hatchet.run) [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT) [![NPM Downloads](https://img.shields.io/npm/dm/%40hatchet-dev%2Fpickaxe)](https://www.npmjs.com/package/@hatchet-dev/pickaxe)
 
@@ -15,7 +15,7 @@
 
 </div>
 
-Pickaxe is a library for orchestrating agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It handles the complexies of durable execution, queueing and scheduling so you can focus on building your application. [It is not a framework.](#philosophy)
+Pickaxe is a library for orchestrating agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It handles the complexities of durable execution, queueing and scheduling so you can focus on building your application. [It is not a framework.](#philosophy)
 
 Pickaxe agents are:
 
@@ -33,9 +33,13 @@ pnpm i -g @hatchet-dev/pickaxe-cli
 pickaxe create first-agent
 ```
 
+For a full quickstart, check out our [documentation](https://pickaxe.hatchet.run/quickstart).
+
 ## Philosophy
 
-Pickaxe is not a framework, it is a library for orchestrating agents. It does not impose any constraints on how you design your tools, call LLMs, or implement features like agent memory. In other words, Pickaxe is opinionated about how agents should be _architected_, but not about how they should be _implemented_.
+Pickaxe is not a framework, it is a library for orchestrating AI agents. It does not impose any constraints on how you design your tools, call LLMs, or implement features like agent memory. In other words, Pickaxe is opinionated about how agents should be _architected_, but not about how they should be _implemented_. 
+
+Everything in Pickaxe is just a function. This means you can choose or build the best memory, knowledge, reasoning, or integrations. We built this after seeing core [Hatchet](https://github.com/hatchet-dev/hatchet) users build sophisticated agentic workloads in this way using simple Hatchet primitives -- we've simply codified the best practices and gave them common names.
 
 ## Documentation
 
@@ -72,7 +76,7 @@ Pickaxe is designed to be extended and modified -- for example, you could build 
 
 ### vs Temporal
 
-Pickaxe's execution model is most similar to [Temporal](https://github.com/temporalio/temporal):
+Pickaxe's execution model is most similar to [Temporal](https://github.com/temporalio/temporal) with a simplified execution model and with more control for workflow scheduling:
 
 | Feature                                     | Pickaxe | Temporal |
 | ------------------------------------------- | ------- | -------- |
