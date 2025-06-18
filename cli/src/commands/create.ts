@@ -81,7 +81,7 @@ async function getProjectConfig(initialName?: string): Promise<ProjectConfig> {
       type: "text" as const,
       name: "description",
       message: "Project description:",
-      initial: (prev: string) => `A example Pickaxe project named ${prev}`,
+      initial: (prev: string) => `An example Pickaxe project named ${prev}`,
     },
     {
       type: "text" as const,
@@ -97,7 +97,8 @@ async function getProjectConfig(initialName?: string): Promise<ProjectConfig> {
         {
           title: "Deep Research Agent",
           value: "deep-research",
-          description: "Advanced research agent with multi-iteration web search, fact extraction, and synthesis",
+          description:
+            "Advanced research agent with multi-iteration web search, fact extraction, and synthesis",
         },
         {
           title: "Geo Agent",

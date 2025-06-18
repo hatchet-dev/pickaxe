@@ -70,7 +70,7 @@ ${result.result.factsJudgment ? `
 
 ${result.result.factsJudgment.missingAspects.length > 0 ? `
 **Missing Aspects Identified:**
-${result.result.factsJudgment.missingAspects.map(aspect => `- ${aspect}`).join('\n')}
+${result.result.factsJudgment.missingAspects.map((aspect: string) => `- ${aspect}`).join('\n')}
 ` : ''}
 ` : ''}
 
