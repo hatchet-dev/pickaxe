@@ -1,0 +1,38 @@
+import { pickaxe } from "@/pickaxe-client";
+import { simple } from "@/tools";
+import z from "zod";
+
+const {{pascalCase name}}AgentInput = z.object({
+  message: z.string(),
+});
+
+const {{pascalCase name}}AgentOutput = z.object({
+  response: z.string(),
+});
+
+export const {{camelCase name}}Toolbox = pickaxe.toolbox({
+  tools: [simple],
+});
+
+export const {{camelCase name}}Agent = pickaxe.agent({
+  name: "{{kebabCase name}}-agent",
+  executionTimeout: "1m",
+  inputSchema: {{pascalCase name}}AgentInput,
+  outputSchema: {{pascalCase name}}AgentOutput,
+  description: "A {{name}} agent to start your project",
+  fn: async (input, ctx) => {
+    const result = await {{camelCase name}}Toolbox.pickAndRun({
+      prompt: input.message,
+    });
+
+    switch (result.name) {
+      case "simple-tool":
+        return {
+          response: result.output.response,
+        };
+        break;
+      default:
+        return {{camelCase name}}Toolbox.assertExhaustive(result);
+    }
+  },
+});

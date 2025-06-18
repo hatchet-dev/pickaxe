@@ -1,0 +1,15 @@
+import { {{camelCase name}}Agent } from '@/agents';
+
+
+async function main() {
+  const result = await {{camelCase name}}Agent.run({
+    message: "Hello, world!"
+  });
+
+  console.log(result.response);
+}
+
+// Run the CLI
+if (require.main === module) {
+  main().catch(console.error);
+}

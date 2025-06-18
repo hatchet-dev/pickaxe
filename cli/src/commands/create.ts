@@ -93,6 +93,11 @@ async function getProjectConfig(initialName?: string): Promise<ProjectConfig> {
       message: "Project template:",
       choices: [
         {
+          title: "Blank",
+          value: "blank",
+          description: "A blank starter project",
+        },
+        {
           title: "Deep Research Agent",
           value: "deep-research",
           description:
