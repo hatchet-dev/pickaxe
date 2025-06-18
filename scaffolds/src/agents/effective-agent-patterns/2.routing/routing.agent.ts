@@ -1,7 +1,6 @@
 import { pickaxe } from "@/pickaxe-client";
 import z from "zod";
 import { salesTool, supportTool } from "./tools/calls.tool";
-import { Classification, classificationTool } from "./tools/classification.tool";
 
 /**
  * ROUTING PATTERN
@@ -34,6 +33,10 @@ const RoutingAgentOutput = z.object({
   canHelp: z.boolean(),
 });
 
+export const routingToolbox = pickaxe.toolbox({
+    tools: [supportTool, salesTool],
+});
+
 export const routingAgent = pickaxe.agent({
   name: "routing-agent",
   executionTimeout: "1m",
@@ -45,45 +48,33 @@ export const routingAgent = pickaxe.agent({
     // STEP 1: Classification - Determine the type of request
     // This is the key step in routing - understanding what kind of input we have
     // so we can direct it to the most appropriate specialized handler
-    const { classification } = await ctx.runChild(classificationTool, {
-        message: input.message,
+    const route = await routingToolbox.pickAndRun({
+        prompt: input.message,
     });
 
     // STEP 2: Route to specialized handler based on classification
     // Each case represents a different specialized workflow optimized for that type
-    switch(classification) {
-        case Classification.Support: {
+    switch(route.name) {
+        case "support-tool": {
             // Route to support-specialized LLM with support-specific tools and prompts
-            const { response } = await ctx.runChild(supportTool, {
-                message: input.message,
-            });
-
             return {
-                message: response,
+                message: route.output.response,
                 canHelp: true,
             }
         }
-        case Classification.Sales: {
+        case "sales-tool": {
             // Route to sales-specialized LLM with sales-specific tools and prompts
-            const { response } = await ctx.runChild(salesTool, {
-                message: input.message,
-            });
-
             return {
-                message: response,
+                message: route.output.response,
                 canHelp: true,
             }
         }
-        case Classification.Other:
-            // Fallback case - graceful degradation for unhandled categories
-            // This prevents the agent from trying to handle cases it's not designed for
+        default:
+            routingToolbox.assertExhaustive(route);
             return {
-                message: 'I am sorry, I cannot help with that yet.',
+                message: "I am sorry, I cannot help with that yet.",
                 canHelp: false,
             }
-        default:
-            // This should never happen if classification is working correctly
-            throw new Error('Invalid classification');
     }
   },
 });

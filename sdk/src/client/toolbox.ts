@@ -1,12 +1,7 @@
 import { z } from "zod";
-import { generateText, jsonSchema, zodSchema } from "ai";
-import {
-  Context,
-  DurableContext,
-  TaskWorkflowDeclaration,
-} from "@hatchet-dev/typescript-sdk";
+import { generateText, zodSchema } from "ai";
+import { TaskWorkflowDeclaration } from "@hatchet-dev/typescript-sdk";
 import { Pickaxe, Registerable } from "./pickaxe";
-import jsonSchemaToZod from "json-schema-to-zod";
 
 export interface ToolDeclaration<
   InputSchema extends z.ZodType,
@@ -145,17 +140,15 @@ export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>>
    * Uses the language model to choose up to `maxTools` tools from this toolbox that best satisfy
    * the provided prompt. Only the selection step is performed—no tool execution happens here.
    *
-   * @param ctx      - Durable context provided by the Hatchet runtime.
    * @param prompt   - Natural-language description of what the caller wants to achieve.
    * @param [maxTools] - Optional upper bound on how many tools may be selected (defaults to 1).
    *
    * @returns An array containing the chosen tool names together with the generated input arguments.
    */
   async pick(
-    ctx: DurableContext<any> | Context<any>,
     { prompt, maxTools }: PickInput
   ) {
-    const result = await ctx.runChild(pickToolFactory(this.client), {
+    const result = await pickToolFactory(this.client).run({
       prompt,
       toolboxKey: this.toolboxKey,
       maxTools,
@@ -177,42 +170,43 @@ export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>>
    * tools were selected.
    *
    * @typeParam R - Inferred map of tool names to transformer functions derived from the toolbox.
-   * @param ctx  - Durable context provided by the Hatchet runtime.
    * @param opts - Same input accepted by `pick`; the `maxTools` property determines the shape of the response.
    */
   async pickAndRun<R extends TransformersFor<T>>(
-    ctx: DurableContext<any> | Context<any>,
     opts: Omit<PickInput, "maxTools"> & { maxTools?: undefined }
   ): Promise<ToolResultMap<T>>;
 
   async pickAndRun<R extends TransformersFor<T>>(
-    ctx: DurableContext<any> | Context<any>,
     opts: PickInput & { maxTools: 1 }
   ): Promise<ToolResultMap<T>>;
 
   // Overload: `maxTools` > 1  ➜ array of results
   async pickAndRun<R extends TransformersFor<T>>(
-    ctx: DurableContext<any> | Context<any>,
     opts: PickInput & { maxTools: number }
   ): Promise<ToolResultMap<T>[]>;
 
   // Implementation
   async pickAndRun<R extends TransformersFor<T>>(
-    ctx: DurableContext<any> | Context<any>,
     opts: PickInput
   ): Promise<any> {
     // 1) pick tools
-    const picked = await this.pick(ctx, opts);
+    const picked = await this.pick(opts);
 
     // 2) run them
-    const results = await ctx.bulkRunChildren(
-      picked.map(({ name, input }) => ({ workflow: name, input }))
+    const results = await Promise.all(
+      picked.map(async ({ name, input }) => {
+        const tool = this.props.tools.find(t => t.name === name);
+        if (!tool) {
+          throw new Error(`Tool "${name}" not found in toolbox`);
+        }
+        return await tool.run(input);
+      })
     );
 
     // 3) zip back into the correctly typed union
     const zipped = picked.map(({ name, input }, i) => ({
       name,
-      output: results[i][name], // FIXME: this is a hack to get the output of the tool
+      output: results[i],
       args: input,
     })) as ToolResultMap<T>[];
 
