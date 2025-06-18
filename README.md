@@ -4,11 +4,18 @@
   <img width="200" alt="Hatchet Logo" src="./static/pickaxe_light.png">
 </picture>
 </a>
+
+[![Docs](https://img.shields.io/badge/docs-pickaxe.hatchet.run-E64327)](https://pickaxe.hatchet.run) [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT) [![NPM Downloads](https://img.shields.io/npm/dm/%40hatchet-dev%2Fpickaxe)](https://www.npmjs.com/package/@hatchet-dev/pickaxe)
+
+[![Discord](https://img.shields.io/discord/1088927970518909068?style=social&logo=discord)](https://hatchet.run/discord)
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/hatchet-dev.svg?style=social&label=Follow%20%40hatchet-dev)](https://twitter.com/hatchet_dev)
+[![GitHub Repo stars](https://img.shields.io/github/stars/hatchet-dev/pickaxe?style=social)](https://github.com/hatchet-dev/pickaxe)
+
 </div>
 
-## Pickaxe: a Typescript library for building fault-tolerant agents
+## Pickaxe: a Typescript library for orchestrating agents
 
-Pickaxe is a library for building fault-tolerant agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It handles the complexies of durable execution, queueing and scheduling so you can focus on building your application.
+Pickaxe is a library for orchestrating agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It handles the complexies of durable execution, queueing and scheduling so you can focus on building your application. [It is not a framework](#philosophy)
 
 Pickaxe agents are:
 
@@ -26,19 +33,34 @@ pnpm i -g @hatchet-dev/pickaxe-cli
 pickaxe create first-agent
 ```
 
-## Concepts
+## Philosophy
 
-- **Agents** - an agent is simply a function that calls **tools**
-- **Toolbox** - a collection of tools that are available to an agent
-- **Tools** - a tool is a function available to an agent. A tool can call other tools, agents, or integrations.
-- **Integrations** - an integration is a third-party API call made by a tool
+Pickaxe is not a framework, it is a library for orchestrating agents. It does not impose any constraints on how you design your tools, call LLMs, or implement features like agent memory. In other words, Pickaxe is opinionated about how agents should be _architected_, but not about how they should be _implemented_.
 
-## Use-Cases and Patterns
+## Documentation
 
-- long-running agents
-- (data enrichment) parallel execution
-- resumeable/human-in-the-loop
-- event-driven systems
+### Concepts
+
+- [**Overview**](https://pickaxe.hatchet.run/concepts/overview) - an overview of the Pickaxe execution model
+- [**Agents**](https://pickaxe.hatchet.run/concepts/agents) - agents are functions which call other tools and agents.
+- [**Tools**](https://pickaxe.hatchet.run/concepts/tools) - tools are functions that perform specific tasks and can be called by agents.
+- [**Toolbox**](https://pickaxe.hatchet.run/concepts/toolbox) - a toolbox is a collection of tools with AI-powered selection capabilities.
+
+### API Reference
+
+- [`pickaxe.start`](https://pickaxe.hatchet.run/api-reference/start)
+- [`pickaxe.agent`](https://pickaxe.hatchet.run/api-reference/agent)
+- [`pickaxe.tool`](https://pickaxe.hatchet.run/api-reference/tool)
+- [`pickaxe.toolbox](https://pickaxe.hatchet.run/api-reference/toolbox)
+
+### Use-Cases and Patterns
+
+- [Prompt chaining](https://pickaxe.hatchet.run/patterns/prompt-chaining)
+- [Routing](https://pickaxe.hatchet.run/patterns/routing)
+- [Parallelization](https://pickaxe.hatchet.run/patterns/parallelization)
+- [Evaluator-optimizer](https://pickaxe.hatchet.run/patterns/evaluator-optimizer)
+- [Multi-agent](https://pickaxe.hatchet.run/patterns/multi-agent)
+- [Human-in-the-loop](https://pickaxe.hatchet.run/patterns/human-in-the-loop)
 
 ## Comparison to Existing Tools
 
@@ -77,6 +99,10 @@ When writing agents with Pickaxe, it's useful to follow these rules:
 2. All quanta of work should be invoked as a task or a tool call.
 
 3. Treat **LLM calls as libraries** and **own your data lookups**: applications should not permit unconstrained agentic tool calling with data lookup. All tool calls should validate user permissions and separate data lookup from LLM calls for security reasons.
+
+## Contributions
+
+Contributions are welcome! Please start a discussion in [Discord](https://hatchet.run/discord) before tackling anything larger than a simple bug fix.
 
 ## Technical Deep-Dive
 
