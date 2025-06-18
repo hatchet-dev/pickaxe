@@ -33,11 +33,13 @@ pnpm i -g @hatchet-dev/pickaxe-cli
 pickaxe create first-agent
 ```
 
+This will prompt you to create a new Pickaxe project from a template to see an e2e example of Pickaxe in action.
+
 For a full quickstart, check out our [documentation](https://pickaxe.hatchet.run/quickstart).
 
 ## Philosophy
 
-Pickaxe is not a framework, it is a library for orchestrating AI agents. It does not impose any constraints on how you design your tools, call LLMs, or implement features like agent memory. In other words, Pickaxe is opinionated about how agents should be _architected_, but not about how they should be _implemented_. 
+Pickaxe is not a framework, it is a library for orchestrating AI agents. It does not impose any constraints on how you design your tools, call LLMs, or implement features like agent memory. In other words, Pickaxe is opinionated about how agents should be _architected_, but not about how they should be _implemented_.
 
 Everything in Pickaxe is just a function. This means you can choose or build the best memory, knowledge, reasoning, or integrations. We built this after seeing core [Hatchet](https://github.com/hatchet-dev/hatchet) users build sophisticated agentic workloads in this way using simple Hatchet primitives -- we've simply codified the best practices and gave them common names.
 
