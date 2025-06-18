@@ -4,10 +4,12 @@ import z from "zod";
 // Example: import { myTool } from "@/tools/my-tool";
 
 const {{pascalCase name}}AgentInput = z.object({
+  // TODO: Define your input schema here. It is recommended to use descriptions for all fields. 
   message: z.string(),
 });
 
 const {{pascalCase name}}AgentOutput = z.object({
+  // TODO: Define your output schema here. It is recommended to use descriptions for all fields.
   message: z.string(),
 });
 
