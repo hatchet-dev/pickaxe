@@ -51,7 +51,7 @@ Pickaxe is not a framework, it is a library for orchestrating agents. It does no
 - [`pickaxe.start`](https://pickaxe.hatchet.run/api-reference/start)
 - [`pickaxe.agent`](https://pickaxe.hatchet.run/api-reference/agent)
 - [`pickaxe.tool`](https://pickaxe.hatchet.run/api-reference/tool)
-- [`pickaxe.toolbox](https://pickaxe.hatchet.run/api-reference/toolbox)
+- [`pickaxe.toolbox`](https://pickaxe.hatchet.run/api-reference/toolbox)
 
 ### Use-Cases and Patterns
 
