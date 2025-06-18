@@ -15,7 +15,7 @@
 
 </div>
 
-Pickaxe is a library for orchestrating agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It handles the complexies of durable execution, queueing and scheduling so you can focus on building your application. [It is not a framework](#philosophy)
+Pickaxe is a library for orchestrating agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It handles the complexies of durable execution, queueing and scheduling so you can focus on building your application. [It is not a framework.](#philosophy)
 
 Pickaxe agents are:
 
