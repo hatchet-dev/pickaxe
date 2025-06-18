@@ -1,0 +1,14 @@
+services:
+  pickaxe-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    # volumes:
+      # Uncomment for development - mount source code for live reloading
+      # - ./src:/app/src
+      # - ./package.json:/app/package.json
+      # - ./tsconfig.json:/app/tsconfig.json
+    # ports:
+    #   - "3000:3000"  # Uncomment and adjust port if your app serves HTTP

@@ -1,4 +1,4 @@
-import { Pickaxe } from "@hatchet-dev/pickaxe/src";
+import { Pickaxe } from "@hatchet-dev/pickaxe";
 import { openai } from "@ai-sdk/openai";
 
 export const pickaxe = Pickaxe.init({
