@@ -37,9 +37,7 @@ export const time = pickaxe.tool({
       console.info(`Looking up coordinates and timezone for: ${input.city}`);
       const geocodingUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(input.city)}&count=1&language=en&format=json`;
       
-      const geocodingResponse = await fetch(geocodingUrl, {
-        timeout: 8000
-      });
+      const geocodingResponse = await fetch(geocodingUrl);
 
       if (!geocodingResponse.ok) {
         throw new Error(`Geocoding API returned ${geocodingResponse.status}`);
@@ -59,9 +57,7 @@ export const time = pickaxe.tool({
       // Step 2: Get current time for the timezone using WorldTimeAPI
       try {
         const timeUrl = `https://worldtimeapi.org/api/timezone/${timezone}`;
-        const timeResponse = await fetch(timeUrl, {
-          timeout: 5000
-        });
+        const timeResponse = await fetch(timeUrl);
 
         if (timeResponse.ok) {
           const timeData = await timeResponse.json();
