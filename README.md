@@ -22,7 +22,7 @@ Pickaxe agents are:
 - **💻 Code-first** - agents are defined as code and are designed to integrate with your business logic.
 - **🌐 Distributed** - all agents and tools run across a fleet of machines, where scheduling is handled gracefully by Pickaxe. When your underlying machine fails, Pickaxe takes care of rescheduling and resuming the agent on a different machine.
 - **⚙️ Configurable** - simple configuration for retries, rate limiting, concurrency control, and much more
-- **☁️ Runnable anywhere** - Pickaxe agents can run on any container-based platform (Railway, Fly.io, Porter, Kubernetes, AWS ECS, GCP Cloud Run)
+- **☁️ Runnable anywhere** - Pickaxe agents can run on any container-based platform (Hatchet, Railway, Fly.io, Porter, Kubernetes, AWS ECS, GCP Cloud Run)
 
 ## Get started
 
