@@ -105,7 +105,7 @@ ${result.result.facts ? result.result.facts.map((fact: any, index: number) =>
   }
 }
 
-async function runAgent(query: string) {
+async function runAgent(query: string, rl: readline.Interface) {
   const startTime = Date.now();
   console.log(`\n🔬 Starting deep research on: "${query}"`);
   console.log('⏳ This may take several minutes as we perform comprehensive research...\n');
@@ -141,18 +141,11 @@ async function runAgent(query: string) {
     
     console.log('='.repeat(80));
     
-    // Ask if user wants to save results
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
-    
+    // Ask if user wants to save results using the existing readline interface
     const saveChoice = await prompt(rl, '\n💾 Save detailed results to file? (y/N): ');
     if (saveChoice.toLowerCase() === 'y' || saveChoice.toLowerCase() === 'yes') {
       await saveResultToFile(query, result);
     }
-    
-    rl.close();
     
   } catch (error) {
     const duration = Math.round((Date.now() - startTime) / 1000);
@@ -186,7 +179,7 @@ async function main() {
       case 'q':
         console.log('\n👋 Goodbye!');
         rl.close();
-        return;
+        process.exit(0);
       
       case 'h':
         showMenu();
@@ -195,7 +188,7 @@ async function main() {
       case 'c':
         const customQuery = await prompt(rl, '\n💭 Enter your research question: ');
         if (customQuery) {
-          await runAgent(customQuery);
+          await runAgent(customQuery, rl);
         } else {
           console.log('❌ No research question provided.');
         }
@@ -203,7 +196,7 @@ async function main() {
       
       default:
         if (presetQueries[choice as keyof typeof presetQueries]) {
-          await runAgent(presetQueries[choice as keyof typeof presetQueries]);
+          await runAgent(presetQueries[choice as keyof typeof presetQueries], rl);
         } else {
           console.log('❌ Invalid option. Please try again.');
         }
