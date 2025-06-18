@@ -48,7 +48,7 @@ export const rootAgent = pickaxe.agent({
   }),
   description: "A root agent that orchestrates the other agents",
   fn: async (input, ctx) => {
-    const result = await multiAgentToolbox.pickAndRun(ctx, {
+    const result = await multiAgentToolbox.pickAndRun({
       prompt: input.message,
     });
 

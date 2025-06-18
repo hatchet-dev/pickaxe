@@ -48,7 +48,7 @@ export const routingAgent = pickaxe.agent({
     // STEP 1: Classification - Determine the type of request
     // This is the key step in routing - understanding what kind of input we have
     // so we can direct it to the most appropriate specialized handler
-    const route = await routingToolbox.pickAndRun(ctx, {
+    const route = await routingToolbox.pickAndRun({
         prompt: input.message,
     });
 
