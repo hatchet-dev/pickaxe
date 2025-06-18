@@ -27,6 +27,7 @@ export abstract class Registerable {
 type BaseOrRegisterable = BaseWorkflowDeclaration<any, any> | Registerable;
 
 interface StartOptions extends CreateWorkerOpts {
+  name?: string;
   register?: Array<BaseOrRegisterable> | Array<Array<BaseOrRegisterable>>;
 }
 
@@ -35,6 +36,8 @@ export class Pickaxe extends Hatchet {
   private toolboxes: Map<string, Toolbox<any>> = new Map();
   private workflowToFilePath: Map<string, string> = new Map();
   
+  private registry: Map<string, BaseOrRegisterable> = new Map();
+
   static init(config?: Partial<ClientConfig>, options?: HatchetClientOptions, axiosConfig?: AxiosRequestConfig) {
     return new Pickaxe(config, options, axiosConfig);
   }
@@ -47,118 +50,13 @@ export class Pickaxe extends Hatchet {
     this.defaultLanguageModel = config.defaultLanguageModel;
   }
 
-  /**
-   * Discover all the agents and tools relative to the current file
-   * and return them as a list of BaseOrRegisterable
-   * 
-   * @returns a list of BaseOrRegisterable
-   */
-  private discover(): BaseOrRegisterable[] | BaseOrRegisterable[][] {
-    this.admin.logger.green("Discovering agents and tools relative to the current file");
-    const fs = require("fs");
-    const path = require("path");
-
-    // Helper: recursively walk a directory and collect files that match the given predicate
-    function walk(dir: string, predicate: (file: string) => boolean, collected: string[]) {
-      if (!fs.existsSync(dir)) return;
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        // Skip common build/output folders
-        if (entry.name === "node_modules") continue;
-
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          walk(fullPath, predicate, collected);
-        } else if (entry.isFile() && predicate(fullPath)) {
-          collected.push(fullPath);
-        }
-      }
-    }
-
-    // Match files that look like agents or tools (either TS or JS, commonjs build)
-    const AGENT_TOOL_TOOLBOX_REGEX = /\.(agent|tool|toolbox)\.[cm]?[tj]s$/;
-
-    // Search roots – prefer dist if it exists (when running compiled code), otherwise src
-    const cwd = process.cwd();
-    const searchRoots = [path.join(cwd, "dist"), path.join(cwd, "src")].filter((p) => fs.existsSync(p));
-
-    const matchedFiles: string[] = [];
-    for (const root of searchRoots) {
-      walk(root, (file) => AGENT_TOOL_TOOLBOX_REGEX.test(file), matchedFiles);
-    }
-
-    const discoveredArr: Array<BaseOrRegisterable | BaseOrRegisterable[]> = [];
-
-    for (const filePath of matchedFiles) {
-      try {
-        // Resolve to absolute path and require synchronously
-        const requiredModule = require(filePath);
-
-        const exportsArray = Object.values(requiredModule);
-
-        // If the module has a default export, include it as well (avoid duplicates)
-        if (requiredModule.default) {
-          exportsArray.push(requiredModule.default);
-        }
-
-        // Deduplicate within this file by tracking names
-        const seenNames = new Set<string>();
-        const fileDiscovered: Array<BaseOrRegisterable | BaseOrRegisterable[]> = [];
-        const relativePath = path.relative(cwd, filePath);
-
-        for (const exp of exportsArray) {
-          if (!exp) continue;
-
-          // For arrays, check each item and dedupe
-          if (Array.isArray(exp)) {
-            const deduped = exp.filter((item: any) => {
-              if (!item || !item.name) return true; // Keep items without names
-              if (seenNames.has(item.name)) return false;
-              seenNames.add(item.name);
-              // Track file path for this workflow
-              if (item.name) {
-                this.workflowToFilePath.set(item.name, relativePath);
-              }
-              return true;
-            });
-            if (deduped.length > 0) {
-              fileDiscovered.push(deduped as BaseOrRegisterable[]);
-            }
-          } else {
-            // For single items, check if it's a workflow, toolbox, or other registerable
-            const name = (exp as any).name || ((exp as any).register ? 'toolbox' : 'unknown');
-            if (!seenNames.has(name)) {
-              seenNames.add(name);
-              fileDiscovered.push(exp as BaseOrRegisterable);
-              // Track file path for this workflow
-              if ((exp as any).name) {
-                this.workflowToFilePath.set((exp as any).name, relativePath);
-              }
-            }
-          }
-        }
-
-        // Add all discovered items from this file
-        discoveredArr.push(...fileDiscovered);
-
-        // Logging for visibility
-        const names = fileDiscovered
-          .flatMap((e: any) => (Array.isArray(e) ? e : [e]))
-          .map((e: any) => (e && e.name ? e.name : "<unknown>"))
-          .join(", ");
-      } catch (err) {
-        this.admin.logger.error(`Failed to import ${filePath}: ${(err as Error).message}`);
-      }
-    }
-
-    return discoveredArr as unknown as BaseOrRegisterable[] | BaseOrRegisterable[][];
-  }
   
   async start(options: StartOptions = {}) {
     let { register, ...rest } = options;
 
     if (!register) {
-      register = this.discover();
+      this.admin.logger.green("No register provided, using auto-discovery");
+      register = Array.from(this.registry.values());
     }
 
     const workflows = register.flat().flatMap((registerable) => {
@@ -169,7 +67,7 @@ export class Pickaxe extends Hatchet {
     });
 
     if (workflows.length === 0) {
-      this.admin.logger.error("Nothing to register, create agent and tools relative to the current file or import and `register` them directly");
+      this.admin.logger.error("Nothing to register, create an agent or tool using the pickaxe.agent or pickaxe.tool methods");
       return;
     }
 
@@ -188,7 +86,7 @@ export class Pickaxe extends Hatchet {
       this.admin.logger.green(`> ${displayName}`);
     }
 
-    const worker = await this.worker('pickaxe-worker', {
+    const worker = await this.worker(options.name || 'pickaxe-worker', {
       ...rest,
       workflows: dedupedWorkflows,
     });
@@ -233,7 +131,9 @@ export class Pickaxe extends Hatchet {
     declaration.inputSchema = inputSchema;
     declaration.outputSchema = outputSchema;
     declaration.description = description;
-    return declaration as AgentDeclaration<any, any>;
+    const agent = declaration as AgentDeclaration<any, any>;
+    this.registry.set(agent.name, agent);
+    return agent;
   }
 
 
@@ -281,7 +181,9 @@ export class Pickaxe extends Hatchet {
 
     // Preserve the literal type of the `name` field through a cast so callers
     // can discriminate on `name` later.
-    return declaration as typeof declaration & { name: typeof options.name };
+    const tool = declaration as typeof declaration & { name: typeof options.name };
+    this.registry.set(tool.name, tool);
+    return tool;
   }
 
 
@@ -295,6 +197,7 @@ export class Pickaxe extends Hatchet {
     // Store the toolbox with a generated key based on tool names
     const toolboxKey = Array.from(options.tools).map(t => t.name).sort().join(':');
     this.toolboxes.set(toolboxKey, toolbox);
+    this.registry.set(toolboxKey, toolbox);
     return toolbox;
   }
 
