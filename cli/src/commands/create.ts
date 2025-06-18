@@ -95,6 +95,11 @@ async function getProjectConfig(initialName?: string): Promise<ProjectConfig> {
       message: "Project template:",
       choices: [
         {
+          title: "Deep Research Agent",
+          value: "deep-research",
+          description: "Advanced research agent with multi-iteration web search, fact extraction, and synthesis",
+        },
+        {
           title: "Geo Agent",
           value: "geo",
           description: "Geo agent has tools for weather, time, and holidays",

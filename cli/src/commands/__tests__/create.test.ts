@@ -42,12 +42,12 @@ describe('create command', () => {
   });
 
   describe('successful project creation', () => {
-    it('should create a new geo project with provided name', async () => {
+    it('should create a new deep research project with provided name', async () => {
       const projectConfig = {
         name: 'test-project',
         description: 'A test project',
         author: 'Test Author',
-        template: 'geo'
+        template: 'deep-research'
       };
 
       // Mock that directory doesn't exist (fs.access throws)
@@ -58,7 +58,7 @@ describe('create command', () => {
 
       // Mock successful template processing
       mockedProcessTemplate.mockResolvedValueOnce([]);
-      mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/geo');
+      mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/deep-research');
 
       await create('test-project');
 
@@ -77,6 +77,10 @@ describe('create command', () => {
           name: 'template',
           choices: [
             expect.objectContaining({
+              title: 'Deep Research Agent',
+              value: 'deep-research'
+            }),
+            expect.objectContaining({
               title: 'Geo Agent',
               value: 'geo'
             })
@@ -87,7 +91,7 @@ describe('create command', () => {
       expect(mockedProcessTemplate).toHaveBeenCalledWith(
         {
           type: 'local',
-          path: '/mock/templates/geo'
+          path: '/mock/templates/deep-research'
         },
         projectConfig,
         {

@@ -1,0 +1,161 @@
+# {{name}}
+
+{{description}} - A comprehensive deep research agent built with Pickaxe that performs multi-iteration web searches to gather, analyze, and synthesize information from multiple sources.
+
+## Getting Started
+
+1. Install dependencies:
+```bash
+pnpm install
+```
+
+2. Set up your environment variables:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and add your API keys (the Hatchet token can be generated at [Hatchet Cloud](https://cloud.onhatchet.run) or by [self-hosting Hatchet](https://docs.hatchet.run/self-hosting)).
+
+3. Run the agent:
+```bash
+pnpm run dev
+```
+
+4. Trigger the interactive CLI:
+```bash
+pnpm run trigger
+```
+
+## Usage
+
+### Interactive CLI
+
+The easiest way to interact with the {{name}} agent is through the interactive CLI:
+
+```bash
+pnpm run trigger
+```
+
+This will launch an interactive menu where you can:
+- Enter research queries for comprehensive investigation
+- View detailed research results with sources and analysis
+- Save results to markdown files with full citations
+
+### Development Mode
+
+Run the agent in development mode:
+```bash
+pnpm run dev
+```
+
+### Build and Run
+
+Build and run the compiled version:
+```bash
+pnpm run build
+pnpm start
+```
+
+## Project Structure
+
+- `src/agents/deep-research/` - Main deep research agent implementation
+- `src/agents/deep-research/tools/` - Comprehensive research tools
+  - `search.tool.ts` - Web search using OpenAI's search preview
+  - `plan-search.tool.ts` - Intelligent search query planning
+  - `website-to-md.tool.ts` - Convert web pages to markdown
+  - `extract-facts.tool.ts` - Extract key facts from sources
+  - `judge-facts.tool.ts` - Evaluate fact completeness
+  - `judge-results.tool.ts` - Assess research quality
+  - `summarize.tool.ts` - Synthesize findings into coherent summaries
+- `src/trigger.ts` - Interactive CLI for running the agent
+- `src/main.ts` - Entry point for standard execution
+- `src/pickaxe-client.ts` - Pickaxe client configuration
+- `results/` - Generated research reports from trigger sessions
+
+## How Deep Research Works
+
+The deep research agent performs sophisticated multi-iteration research:
+
+1. **Query Planning**: Analyzes your question and plans targeted search queries
+2. **Web Search**: Searches the web using OpenAI's search preview tool
+3. **Content Extraction**: Converts web pages to clean markdown format
+4. **Fact Extraction**: Identifies and extracts key facts from each source
+5. **Gap Analysis**: Evaluates what information is still missing
+6. **Iterative Refinement**: Repeats the process focusing on missing aspects
+7. **Synthesis**: Creates a comprehensive summary with full source attribution
+
+## Available Tools
+
+### Search Tool
+Performs web searches using OpenAI's advanced search preview.
+- Provides high-quality, recent web results
+- Includes source URLs and titles
+- Optimized for research queries
+
+### Plan Search Tool
+Intelligently plans search queries based on existing knowledge and gaps.
+- Analyzes what information we already have
+- Identifies missing aspects that need investigation
+- Generates targeted search queries for maximum information gain
+
+### Website to Markdown Tool
+Converts web pages to clean, readable markdown format.
+- Removes ads, navigation, and clutter
+- Preserves important content structure
+- Maintains links and formatting for citations
+
+### Extract Facts Tool
+Identifies and extracts key facts from source material.
+- Focuses on information relevant to the research query
+- Attributes facts to specific sources
+- Filters out opinions and maintains objectivity
+
+### Judge Facts Tool
+Evaluates whether we have sufficient information to answer the query.
+- Assesses completeness of gathered facts
+- Identifies specific missing aspects
+- Determines if additional research iterations are needed
+
+### Judge Results Tool
+Assesses the quality and completeness of the final research.
+- Evaluates if the research adequately addresses the original query
+- Provides reasoning for completeness assessment
+- Ensures research meets quality standards
+
+### Summarize Tool
+Synthesizes all gathered information into a coherent, comprehensive summary.
+- Combines facts from multiple sources
+- Maintains source attribution
+- Creates readable, well-structured reports
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OPENAI_API_KEY` | Yes | Your OpenAI API key for language model and search |
+| `HATCHET_CLIENT_TOKEN` | Yes | Your Hatchet API token for orchestration |
+
+## Example Research Queries
+
+- "What are the latest developments in quantum computing and their potential applications?"
+- "How has climate change affected Arctic ice coverage over the past decade?"
+- "What are the key differences between various machine learning frameworks?"
+- "What are the economic impacts of remote work on urban centers?"
+- "How do different countries approach renewable energy policy?"
+
+## Research Features
+
+- **Multi-Source Analysis**: Gathers information from multiple web sources
+- **Iterative Refinement**: Performs multiple research rounds to fill knowledge gaps
+- **Source Attribution**: Maintains detailed citations for all facts
+- **Quality Assessment**: Evaluates research completeness and reliability
+- **Comprehensive Reporting**: Generates detailed reports with summaries and sources
+
+## Scripts
+
+- `pnpm run trigger` - Run the interactive deep research CLI
+- `pnpm run dev` - Run in development mode
+- `pnpm run build` - Build the project
+- `pnpm start` - Run the built project
+- `pnpm test` - Run tests
+- `pnpm run lint` - Run linting

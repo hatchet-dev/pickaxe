@@ -1,0 +1,35 @@
+# Use Node.js LTS version
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY pnpm-lock.yaml* ./
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Install dependencies
+RUN pnpm install
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN pnpm build
+
+# Expose port (adjust if your app uses a different port)
+EXPOSE 3000
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S {{name}} -u 1001
+
+# Change ownership of the app directory
+RUN chown -R {{name}}:nodejs /app
+USER {{name}}
+
+# Start the application
+CMD ["pnpm", "start"]
