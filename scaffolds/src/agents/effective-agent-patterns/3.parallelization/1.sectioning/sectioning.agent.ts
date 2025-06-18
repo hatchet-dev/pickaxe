@@ -56,8 +56,8 @@ export const sectioningAgent = pickaxe.agent({
     // These are independent - the appropriateness check doesn't need the main content
     // to do its job, and vice versa. This allows for significant speed improvements.
     const [{isAppropriate, reason}, mainResult] = await Promise.all([
-      ctx.runChild(appropriatenessCheckTool, { message: input.message }),
-      ctx.runChild(mainContentTool, { message: input.message }),
+      appropriatenessCheckTool.run({ message: input.message }),
+      mainContentTool.run({ message: input.message }),
     ]);
 
     // AGGREGATION: Combine results with business logic

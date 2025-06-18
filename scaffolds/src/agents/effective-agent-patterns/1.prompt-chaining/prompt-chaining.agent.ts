@@ -44,7 +44,7 @@ export const promptChainingAgent = pickaxe.agent({
     
     // STEP 1: First LLM call - Process the initial message
     // This step determines if the message is about an animal
-    const { oneOutput } = await ctx.runChild(oneTool, {
+    const { oneOutput } = await oneTool.run({
         message: input.message,
     });
 
@@ -61,13 +61,13 @@ export const promptChainingAgent = pickaxe.agent({
     // PASS: If validation succeeds, continue to next step
     // STEP 2: Second LLM call - Transform the validated input
     // Since we know it's about an animal, translate to Spanish
-    const { twoOutput } = await ctx.runChild(twoTool, {
+    const { twoOutput } = await twoTool.run({
         message: input.message,
     });
 
     // STEP 3: Third LLM call - Final transformation
     // Convert the Spanish message into a haiku format
-    const { threeOutput } = await ctx.runChild(threeTool, {
+    const { threeOutput } = await threeTool.run({
         twoOutput, // Note: Using output from previous step as input
     });
 

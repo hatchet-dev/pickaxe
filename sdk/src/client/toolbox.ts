@@ -155,7 +155,7 @@ export class Toolbox<T extends ReadonlyArray<ToolDeclaration<any, any>>>
     ctx: DurableContext<any> | Context<any>,
     { prompt, maxTools }: PickInput
   ) {
-    const result = await ctx.runChild(pickToolFactory(this.client), {
+    const result = await pickToolFactory(this.client).run({
       prompt,
       toolboxKey: this.toolboxKey,
       maxTools,

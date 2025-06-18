@@ -64,7 +64,7 @@ export const evaluatorOptimizerAgent = pickaxe.agent({
       // - Original requirements (topic, target audience)
       // - Previous attempt (if any)
       // - Feedback from evaluator (if any)
-      const { post: newPost } = await ctx.runChild(generatorTool, { 
+      const { post: newPost } = await generatorTool.run({ 
         topic: input.topic, 
         targetAudience: input.targetAudience, 
         previousPost: post, 
@@ -76,7 +76,7 @@ export const evaluatorOptimizerAgent = pickaxe.agent({
       // The evaluator provides:
       // - A completion flag (is this good enough?)
       // - Specific feedback for improvement (if not complete)
-      const evaluatorResult = await ctx.runChild(evaluatorTool, { 
+      const evaluatorResult = await evaluatorTool.run({ 
         post: post, 
         topic: input.topic, 
         targetAudience: input.targetAudience 

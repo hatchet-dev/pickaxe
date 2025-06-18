@@ -45,7 +45,7 @@ export const routingAgent = pickaxe.agent({
     // STEP 1: Classification - Determine the type of request
     // This is the key step in routing - understanding what kind of input we have
     // so we can direct it to the most appropriate specialized handler
-    const { classification } = await ctx.runChild(classificationTool, {
+    const { classification } = await classificationTool.run({
         message: input.message,
     });
 
@@ -54,7 +54,7 @@ export const routingAgent = pickaxe.agent({
     switch(classification) {
         case Classification.Support: {
             // Route to support-specialized LLM with support-specific tools and prompts
-            const { response } = await ctx.runChild(supportTool, {
+            const { response } = await supportTool.run({
                 message: input.message,
             });
 
@@ -65,7 +65,7 @@ export const routingAgent = pickaxe.agent({
         }
         case Classification.Sales: {
             // Route to sales-specialized LLM with sales-specific tools and prompts
-            const { response } = await ctx.runChild(salesTool, {
+            const { response } = await salesTool.run({
                 message: input.message,
             });
 

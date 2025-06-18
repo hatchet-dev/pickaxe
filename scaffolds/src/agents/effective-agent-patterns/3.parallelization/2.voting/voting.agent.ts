@@ -58,15 +58,15 @@ export const votingAgent = pickaxe.agent({
     // This follows Anthropic's pattern of using multiple specialized evaluators
     // rather than trying to do all evaluation in a single call
     const [safetyVote, helpfulnessVote, accuracyVote] = await Promise.all([
-      ctx.runChild(safetyVoterTool, {
+      safetyVoterTool.run({
         message: input.message,
         response: input.response,
       }),
-      ctx.runChild(helpfulnessVoterTool, {
+      helpfulnessVoterTool.run({
         message: input.message,
         response: input.response,
       }),
-      ctx.runChild(accuracyVoterTool, {
+      accuracyVoterTool.run({
         message: input.message,
         response: input.response,
       }),

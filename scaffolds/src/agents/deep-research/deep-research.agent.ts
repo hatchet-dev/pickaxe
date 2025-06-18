@@ -71,7 +71,7 @@ export const deepResearchAgent = pickaxe.agent({
         `Planning search with ${allFacts.length} existing facts and ${missingAspects.length} missing aspects`
       );
 
-      plan = await ctx.runChild(planSearch, {
+      plan = await planSearch.run({
         query: input.message,
         existingFacts: allFacts.map((f) => f.text),
         missingAspects: missingAspects,
@@ -86,11 +86,8 @@ export const deepResearchAgent = pickaxe.agent({
       }
 
       ctx.logger.info(`Executing ${plan.queries.length} search queries`);
-      const results = await ctx.bulkRunChildren(
-        plan.queries.map((query: string) => ({
-          workflow: search,
-          input: { query },
-        }))
+      const results = await search.run  (
+        plan.queries.map((query: string) => ({ query }))
       );
 
       // Flatten and deduplicate sources
