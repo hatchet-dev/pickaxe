@@ -48,9 +48,7 @@ export async function create(projectName?: string) {
     console.log(`📁 Project created in: ${outputDir}`);
     console.log("\n📝 Next steps:");
     console.log(`1. cd ${config.name}`);
-    console.log("2. npm install");
-    console.log("3. Configure your environment variables");
-    console.log("4. npm run dev");
+    console.log("2. Follow the instructions in the README.md file");
   } catch (error) {
     console.error(
       "❌ Failed to create project:",
