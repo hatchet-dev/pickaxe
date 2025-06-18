@@ -12,7 +12,7 @@ const CallOutput = z.object({
 
 export const supportTool = pickaxe.tool({
   name: "support-tool",
-  description: "A tool that provides support for the user",
+  description: "A tool that provides technical support for the user",
   inputSchema: CallInput,
   outputSchema: CallOutput,
   fn: async (input) => {
