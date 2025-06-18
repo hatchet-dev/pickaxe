@@ -5,6 +5,8 @@
 </picture>
 </a>
 
+### Pickaxe: A Typescript library for orchestrating agents
+
 [![Docs](https://img.shields.io/badge/docs-pickaxe.hatchet.run-E64327)](https://pickaxe.hatchet.run) [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT) [![NPM Downloads](https://img.shields.io/npm/dm/%40hatchet-dev%2Fpickaxe)](https://www.npmjs.com/package/@hatchet-dev/pickaxe)
 
 [![Discord](https://img.shields.io/discord/1088927970518909068?style=social&logo=discord)](https://hatchet.run/discord)
@@ -12,8 +14,6 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/hatchet-dev/pickaxe?style=social)](https://github.com/hatchet-dev/pickaxe)
 
 </div>
-
-## Pickaxe: a Typescript library for orchestrating agents
 
 Pickaxe is a library for orchestrating agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It handles the complexies of durable execution, queueing and scheduling so you can focus on building your application. [It is not a framework](#philosophy)
 
