@@ -52,9 +52,9 @@ export class PickaxeMcpServer {
       return {
         tools: [
           {
-            name: "create_agent",
+            name: "scaffold_agent",
             description:
-              "Create a new AI agent with a simple interface that has a name, description, and execute method. Before using this tool, please refer to the planning instructions at: https://pickaxe.hatchet.run/mcp/mcp-instructions.md",
+              "Creates the boilerplate for a new AI agent with a simple interface that has a name, description, and execute method. Before using this tool, please refer to the planning instructions at: https://pickaxe.hatchet.run/mcp/mcp-instructions.md. If a user is asking to create an agent, you should first read this document, then scaffold tools with the `scaffold_tool` tool, and finally use this tool to create the agent.",
             inputSchema: {
               type: "object",
               properties: {
@@ -71,9 +71,9 @@ export class PickaxeMcpServer {
             },
           },
           {
-            name: "create_tool",
+            name: "scaffold_tool",
             description:
-              "Create a new utility tool with specified category and functionality",
+              "Creates the boilerplate for a new utility tool with a simple interface that has a name, category, and execute method. Before using this tool, please refer to the planning instructions at: https://pickaxe.hatchet.run/mcp/mcp-instructions.md. If a user is asking to create a tool, you should first read this document, then use this tool to scaffold the tool.",
             inputSchema: {
               type: "object",
               properties: {
@@ -111,9 +111,9 @@ export class PickaxeMcpServer {
           const { name, arguments: args } = request.params;
 
           switch (name) {
-            case "create_agent":
+            case "scaffold_agent":
               return await this.handleCreateAgent(args);
-            case "create_tool":
+            case "scaffold_tool":
               return await this.handleCreateTool(args);
             case "plan_agent":
               return await this.handlePlanAgent();
