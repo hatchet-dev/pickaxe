@@ -6,13 +6,12 @@ import { processTemplate, getTemplatePath, updateBarrelFile } from "../utils";
 interface ToolConfig {
   name: string;
   description: string;
-  category: string;
 }
 
 // Core logic for adding a tool
 export async function createTool(
   name: string,
-  options: { category?: string; description?: string; silent?: boolean }
+  options: { description?: string; silent?: boolean }
 ) {
   try {
     if (!options.silent) {
@@ -28,9 +27,8 @@ export async function createTool(
       ? {
           name,
           description: options.description,
-          category: options.category || "utility",
         }
-      : await getToolConfig(name, options.category);
+      : await getToolConfig(name);
 
     // Process templates - resolve template path for both dev and bundled environments
     const outputDir = toolsDir;
@@ -77,8 +75,8 @@ export async function createTool(
 }
 
 // CLI wrapper function that doesn't return a value
-export async function addTool(name: string, options: { category?: string }) {
-  await createTool(name, options);
+export async function addTool(name: string) {
+  await createTool(name, {});
 }
 
 async function ensureToolsDirectory(
@@ -95,10 +93,7 @@ async function ensureToolsDirectory(
   }
 }
 
-async function getToolConfig(
-  name: string,
-  category?: string
-): Promise<ToolConfig> {
+async function getToolConfig(name: string): Promise<ToolConfig> {
   const questions = [
     {
       type: "text" as const,
@@ -107,16 +102,6 @@ async function getToolConfig(
       initial: `A utility tool for ${name} functionality`,
     },
   ];
-
-  // Only ask for category if not provided
-  if (!category) {
-    questions.unshift({
-      type: "text" as const,
-      name: "category",
-      message: "Tool category:",
-      initial: "utility",
-    });
-  }
 
   const answers = await prompts(questions);
 
@@ -129,6 +114,5 @@ async function getToolConfig(
   return {
     name,
     description: answers.description,
-    category: category || answers.category || "utility",
   };
 }

@@ -54,7 +54,7 @@ export class PickaxeMcpServer {
           {
             name: "create_agent",
             description:
-              "Create a new AI agent with a simple interface that has a name, description, and execute method",
+              "Create a new AI agent with a simple interface that has a name, description, and execute method. Before using this tool, please refer to the planning instructions at: https://pickaxe.hatchet.run/mcp/mcp-instructions.md",
             inputSchema: {
               type: "object",
               properties: {
@@ -91,7 +91,8 @@ export class PickaxeMcpServer {
           },
           {
             name: "plan_agent",
-            description: "Provides planning instructions for creating a new agent",
+            description:
+              "Provides planning instructions for creating a new agent",
             inputSchema: {
               type: "object",
               properties: {},
