@@ -1,10 +1,14 @@
-import { search } from "@/agents/deep-research/tools/search.tool";
-import { planSearch, PlanSearchOutput } from "@/agents/deep-research/tools/plan-search.tool";
-import { websiteToMd } from "@/agents/deep-research/tools/website-to-md.tool";
-import { summarize } from "@/agents/deep-research/tools/summarize.tool";
-import { judgeResults } from "@/agents/deep-research/tools/judge-results.tool";
-import { extractFacts } from "@/agents/deep-research/tools/extract-facts.tool";
-import { judgeFacts, JudgeFactsOutput } from "@/agents/deep-research/tools/judge-facts.tool";
+import { 
+  search, 
+  planSearch, 
+  PlanSearchOutput, 
+  websiteToMd, 
+  summarize, 
+  judgeResults, 
+  extractFacts, 
+  judgeFacts, 
+  JudgeFactsOutput 
+} from "@/tools";
 import { z } from "zod";
 import { pickaxe } from "@/pickaxe-client";
 
