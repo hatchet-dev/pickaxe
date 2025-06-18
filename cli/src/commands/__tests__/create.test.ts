@@ -77,6 +77,10 @@ describe('create command', () => {
           name: 'template',
           choices: [
             expect.objectContaining({
+              title: 'Blank',
+              value: 'blank'
+            }),
+            expect.objectContaining({
               title: 'Deep Research Agent',
               value: 'deep-research'
             }),
@@ -297,9 +301,7 @@ describe('create command', () => {
       expect(mockConsoleLog).toHaveBeenCalledWith(`📁 Project created in: ${path.join(process.cwd(), 'awesome-project')}`);
       expect(mockConsoleLog).toHaveBeenCalledWith('\n📝 Next steps:');
       expect(mockConsoleLog).toHaveBeenCalledWith('1. cd awesome-project');
-      expect(mockConsoleLog).toHaveBeenCalledWith('2. npm install');
-      expect(mockConsoleLog).toHaveBeenCalledWith('3. Configure your environment variables');
-      expect(mockConsoleLog).toHaveBeenCalledWith('4. npm run dev');
+      expect(mockConsoleLog).toHaveBeenCalledWith('2. Follow the instructions in the README.md file');
     });
   });
 });

@@ -20,10 +20,6 @@ const CreateAgentArgsSchema = z.object({
 
 const CreateToolArgsSchema = z.object({
   name: z.string().describe("Name of the tool to create"),
-  category: z
-    .string()
-    .optional()
-    .describe('Category of the tool (default: "utility")'),
 });
 
 export class PickaxeMcpServer {
@@ -73,17 +69,13 @@ export class PickaxeMcpServer {
           {
             name: "scaffold_tool",
             description:
-              "Creates the boilerplate for a new Pickaxe tool with a simple interface that has a name, category, and execute method. Before using this tool, please refer to the planning instructions at: https://pickaxe.hatchet.run/mcp/mcp-instructions.md. If a user is asking to create a tool, you should first read this document, then use this tool to scaffold the tool.",
+              "Creates the boilerplate for a new Pickaxe tool with a simple interface that has a name and execute method. Before using this tool, please refer to the planning instructions at: https://pickaxe.hatchet.run/mcp/mcp-instructions.md. If a user is asking to create a tool, you should first read this document, then use this tool to scaffold the tool.",
             inputSchema: {
               type: "object",
               properties: {
                 name: {
                   type: "string",
                   description: "Name of the tool to create",
-                },
-                category: {
-                  type: "string",
-                  description: 'Category of the tool (default: "utility")',
                 },
               },
               required: ["name"],
@@ -169,20 +161,20 @@ export class PickaxeMcpServer {
   }
 
   private async handleCreateTool(args: any) {
-    const { name, category = "utility" } = CreateToolArgsSchema.parse(args);
+    const { name } = CreateToolArgsSchema.parse(args);
 
     try {
       // Use the existing addTool command
       const { addTool } = require("../commands/add-tool");
 
-      // Call the command - note: this currently just logs placeholder text
-      await addTool(name, { category });
+      // Call the command
+      await addTool(name);
 
       return {
         content: [
           {
             type: "text",
-            text: `Tool creation requested: '${name}' in category '${category}'. (Command executed, but tool templates not yet implemented)`,
+            text: `Tool '${name}' created successfully.`,
           },
         ],
       };
