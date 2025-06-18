@@ -90,25 +90,11 @@ export class PickaxeMcpServer {
             },
           },
           {
-            name: "list_agents",
-            description: "List all created agents in the agents directory",
+            name: "plan_agent",
+            description: "Provides planning instructions for creating a new agent",
             inputSchema: {
               type: "object",
               properties: {},
-            },
-          },
-          {
-            name: "get_agent_info",
-            description: "Get detailed information about a specific agent",
-            inputSchema: {
-              type: "object",
-              properties: {
-                name: {
-                  type: "string",
-                  description: "Name of the agent to get information about",
-                },
-              },
-              required: ["name"],
             },
           },
         ],
@@ -128,10 +114,8 @@ export class PickaxeMcpServer {
               return await this.handleCreateAgent(args);
             case "create_tool":
               return await this.handleCreateTool(args);
-            case "list_agents":
-              return await this.handleListAgents();
-            case "get_agent_info":
-              return await this.handleGetAgentInfo(args);
+            case "plan_agent":
+              return await this.handlePlanAgent();
             default:
               throw new McpError(
                 ErrorCode.MethodNotFound,
@@ -211,77 +195,15 @@ export class PickaxeMcpServer {
     }
   }
 
-  private async handleListAgents() {
-    try {
-      // Use the existing listAgents utility
-      const { listAgents } = require("../utils");
-      const agents = await listAgents();
-
-      if (agents.length === 0) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: "No agents found. Create your first agent with the create_agent tool.",
-            },
-          ],
-        };
-      }
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Found ${agents.length} agents:\n${agents
-              .map((name: any) => `- ${name}`)
-              .join("\n")}`,
-          },
-        ],
-      };
-    } catch (error) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Failed to list agents: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    }
-  }
-
-  private async handleGetAgentInfo(args: any) {
-    const { name } = z.object({ name: z.string() }).parse(args);
-
-    try {
-      // Use the existing getAgentInfo utility
-      const { getAgentInfo } = require("../utils");
-      const agentInfo = await getAgentInfo(name);
-
-      if (!agentInfo) {
-        throw new McpError(
-          ErrorCode.InvalidRequest,
-          `Agent '${name}' not found`
-        );
-      }
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Agent: ${agentInfo.name}\nDescription: ${agentInfo.description}\nLocation: ${agentInfo.location}`,
-          },
-        ],
-      };
-    } catch (error) {
-      if (error instanceof McpError) {
-        throw error;
-      }
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Failed to get agent info: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    }
+  private async handlePlanAgent() {
+    return {
+      content: [
+        {
+          type: "text",
+          text: "Please refer to the latest agent planning instructions at: https://pickaxe.hatchet.run/mcp/mcp-instructions.md",
+        },
+      ],
+    };
   }
 
   async run() {
