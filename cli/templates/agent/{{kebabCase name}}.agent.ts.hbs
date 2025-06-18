@@ -25,7 +25,7 @@ export const {{camelCase name}}Agent = pickaxe.agent({
   outputSchema: {{pascalCase name}}AgentOutput,
   description: "{{description}}",
   fn: async (input, ctx) => {
-    const result = await {{camelCase name}}Toolbox.pickAndRun(ctx, {
+    const result = await {{camelCase name}}Toolbox.pickAndRun({
       prompt: input.message,
     });
 
