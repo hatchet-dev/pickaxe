@@ -1,7 +1,7 @@
-import prompts from 'prompts';
-import * as path from 'path';
-import { promises as fs } from 'fs';
-import { processTemplate, getTemplatePath } from '../utils';
+import prompts from "prompts";
+import * as path from "path";
+import { promises as fs } from "fs";
+import { processTemplate, getTemplatePath, updateBarrelFile } from "../utils";
 
 interface ToolConfig {
   name: string;
@@ -10,55 +10,66 @@ interface ToolConfig {
 }
 
 // Core logic for adding a tool
-export async function createTool(name: string, options: { category?: string; description?: string; silent?: boolean }) {
+export async function createTool(
+  name: string,
+  options: { category?: string; description?: string; silent?: boolean }
+) {
   try {
     if (!options.silent) {
       console.log(`🛠️ Creating tool: ${name}`);
     }
-    
+
     // Verify tools directory exists
-    const toolsDir = path.join(process.cwd(), 'src', 'tools');
+    const toolsDir = path.join(process.cwd(), "src", "tools");
     await ensureToolsDirectory(toolsDir, options.silent);
-    
+
     // Get tool configuration - use provided description or prompt interactively
-    const config = options.description 
-      ? { 
-          name, 
+    const config = options.description
+      ? {
+          name,
           description: options.description,
-          category: options.category || 'utility'
+          category: options.category || "utility",
         }
       : await getToolConfig(name, options.category);
-    
+
     // Process templates - resolve template path for both dev and bundled environments
     const outputDir = toolsDir;
-    const templatesDir = getTemplatePath('tool', __dirname);
-    
-    await processTemplate(
-      { type: 'local', path: templatesDir },
-      config,
-      { outputDir, force: false }
-    );
+    const templatesDir = getTemplatePath("tool", __dirname);
+
+    await processTemplate({ type: "local", path: templatesDir }, config, {
+      outputDir,
+      force: false,
+    });
+
+    // Update barrel file if it exists
+    const toolFileName = name
+      .replace(/([a-z])([A-Z])/g, "$1-$2")
+      .toLowerCase()
+      .replace(/[\s_]+/g, "-");
+    await updateBarrelFile(outputDir, toolFileName, "tool", options.silent);
 
     if (!options.silent) {
       console.log(`\n✅ Tool '${config.name}' created successfully!`);
-      console.log(`📁 File created: ${path.join(outputDir, `${name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase().replace(/[\s_]+/g, '-')}.tool.ts`)}`);
-      console.log('\n📝 Next steps:');
-      console.log('1. Define your input and output schemas in the tool file');
-      console.log('2. Implement the tool logic in the fn function');
-      console.log('3. Import and add the tool to your agent\'s toolbox');
+      console.log(
+        `📁 File created: ${path.join(outputDir, `${toolFileName}.tool.ts`)}`
+      );
+      console.log("\n📝 Next steps:");
+      console.log("1. Define your input and output schemas in the tool file");
+      console.log("2. Implement the tool logic in the fn function");
+      console.log("3. Import and add the tool to your agent's toolbox");
     }
 
     return {
       success: true,
       message: `Tool '${config.name}' created successfully`,
       outputDir,
-      config
+      config,
     };
-    
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     if (!options.silent) {
-      console.error('❌ Failed to create tool:', errorMessage);
+      console.error("❌ Failed to create tool:", errorMessage);
       process.exit(1);
     }
     throw new Error(`Failed to create tool: ${errorMessage}`);
@@ -70,7 +81,10 @@ export async function addTool(name: string, options: { category?: string }) {
   await createTool(name, options);
 }
 
-async function ensureToolsDirectory(toolsDir: string, silent?: boolean): Promise<void> {
+async function ensureToolsDirectory(
+  toolsDir: string,
+  silent?: boolean
+): Promise<void> {
   try {
     await fs.access(toolsDir);
   } catch {
@@ -81,37 +95,40 @@ async function ensureToolsDirectory(toolsDir: string, silent?: boolean): Promise
   }
 }
 
-async function getToolConfig(name: string, category?: string): Promise<ToolConfig> {
+async function getToolConfig(
+  name: string,
+  category?: string
+): Promise<ToolConfig> {
   const questions = [
     {
-      type: 'text' as const,
-      name: 'description',
-      message: 'Tool description:',
-      initial: `A utility tool for ${name} functionality`
-    }
+      type: "text" as const,
+      name: "description",
+      message: "Tool description:",
+      initial: `A utility tool for ${name} functionality`,
+    },
   ];
 
   // Only ask for category if not provided
   if (!category) {
     questions.unshift({
-      type: 'text' as const,
-      name: 'category',
-      message: 'Tool category:',
-      initial: 'utility'
+      type: "text" as const,
+      name: "category",
+      message: "Tool category:",
+      initial: "utility",
     });
   }
 
   const answers = await prompts(questions);
-  
+
   // Handle user cancellation
   if (Object.keys(answers).length === 0 || !answers.description) {
-    console.log('\n❌ Tool creation cancelled');
+    console.log("\n❌ Tool creation cancelled");
     process.exit(0);
   }
 
   return {
     name,
     description: answers.description,
-    category: category || answers.category || 'utility'
+    category: category || answers.category || "utility",
   };
 }

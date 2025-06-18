@@ -1,6 +1,6 @@
 import { createTool } from '../add-tool';
 import { promises as fs } from 'fs';
-import { processTemplate, getTemplatePath } from '../../utils';
+import { processTemplate, getTemplatePath, updateBarrelFile } from '../../utils';
 
 // Mock dependencies
 jest.mock('fs', () => ({
@@ -13,6 +13,7 @@ jest.mock('fs', () => ({
 jest.mock('../../utils', () => ({
   processTemplate: jest.fn(),
   getTemplatePath: jest.fn(),
+  updateBarrelFile: jest.fn(),
 }));
 
 // Mock console methods
@@ -22,6 +23,7 @@ const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
 const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedProcessTemplate = processTemplate as jest.MockedFunction<typeof processTemplate>;
 const mockedGetTemplatePath = getTemplatePath as jest.MockedFunction<typeof getTemplatePath>;
+const mockedUpdateBarrelFile = updateBarrelFile as jest.MockedFunction<typeof updateBarrelFile>;
 
 describe('add-tool command', () => {
   beforeEach(() => {
@@ -42,6 +44,7 @@ describe('add-tool command', () => {
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
       mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/tool');
+      mockedUpdateBarrelFile.mockResolvedValueOnce(undefined);
 
       const result = await createTool('my-tool', { 
         description: 'A sample tool for testing',
@@ -68,6 +71,7 @@ describe('add-tool command', () => {
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
       mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/tool');
+      mockedUpdateBarrelFile.mockResolvedValueOnce(undefined);
 
       const result = await createTool('my-tool', { 
         description: 'A sample tool for testing',
@@ -84,6 +88,7 @@ describe('add-tool command', () => {
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
       mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/tool');
+      mockedUpdateBarrelFile.mockResolvedValueOnce(undefined);
 
       const result = await createTool('my-tool', { 
         description: 'A sample tool',
@@ -98,6 +103,7 @@ describe('add-tool command', () => {
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
       mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/tool');
+      mockedUpdateBarrelFile.mockResolvedValueOnce(undefined);
 
       await createTool('my-tool', { 
         description: 'A sample tool',

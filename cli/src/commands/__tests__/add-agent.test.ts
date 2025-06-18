@@ -1,6 +1,6 @@
 import { createAgent } from '../add-agent';
 import { promises as fs } from 'fs';
-import { processTemplate, getTemplatePath } from '../../utils';
+import { processTemplate, getTemplatePath, updateBarrelFile } from '../../utils';
 
 // Mock dependencies
 jest.mock('fs', () => ({
@@ -13,6 +13,7 @@ jest.mock('fs', () => ({
 jest.mock('../../utils', () => ({
   processTemplate: jest.fn(),
   getTemplatePath: jest.fn(),
+  updateBarrelFile: jest.fn(),
 }));
 
 // Mock console methods
@@ -22,6 +23,7 @@ const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
 const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedProcessTemplate = processTemplate as jest.MockedFunction<typeof processTemplate>;
 const mockedGetTemplatePath = getTemplatePath as jest.MockedFunction<typeof getTemplatePath>;
+const mockedUpdateBarrelFile = updateBarrelFile as jest.MockedFunction<typeof updateBarrelFile>;
 
 describe('add-agent command', () => {
   beforeEach(() => {
@@ -42,6 +44,7 @@ describe('add-agent command', () => {
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
       mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/agent');
+      mockedUpdateBarrelFile.mockResolvedValueOnce(undefined);
 
       const result = await createAgent('my-agent', { 
         description: 'Sample agent description',
@@ -67,6 +70,7 @@ describe('add-agent command', () => {
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedProcessTemplate.mockResolvedValueOnce([]);
       mockedGetTemplatePath.mockReturnValueOnce('/mock/templates/agent');
+      mockedUpdateBarrelFile.mockResolvedValueOnce(undefined);
 
       const result = await createAgent('my-agent', { 
         description: 'Sample agent description',

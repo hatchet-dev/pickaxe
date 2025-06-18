@@ -3,3 +3,4 @@ export { TemplateProcessor, TemplateContext, ProcessedTemplate } from './templat
 export { TemplateEngine, TemplateEngineOptions, processTemplate } from './template-engine';
 export { listAgents, getAgentInfo } from './agent-utils';
 export { getTemplatePath, getTemplatePathAsync } from './template-path';
+export { updateBarrelFile } from './barrel-utils';
