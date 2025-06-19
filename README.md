@@ -22,7 +22,7 @@ Everything in Pickaxe is just a function that **you have written**, which makes 
 ```ts
 import { pickaxe } from "@hatchet-dev/pickaxe";
 import z from "zod";
-import { myTool1, myTool2 } from "@/tools/my-tool";
+import { myTool1, myTool2 } from "@/tools";
 
 const MyAgentInput = z.object({
   message: z.string(),
