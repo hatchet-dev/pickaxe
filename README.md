@@ -5,7 +5,7 @@
 </picture>
 </a>
 
-### Pickaxe: A Typescript library for orchestrating AI agents
+### Pickaxe: A Typescript library for building AI agents that scale
 
 [![Docs](https://img.shields.io/badge/docs-pickaxe.hatchet.run-E64327)](https://pickaxe.hatchet.run) [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT) [![NPM Downloads](https://img.shields.io/npm/dm/%40hatchet-dev%2Fpickaxe)](https://www.npmjs.com/package/@hatchet-dev/pickaxe)
 
@@ -15,14 +15,53 @@
 
 </div>
 
-Pickaxe is a library for orchestrating agents, built on top of [Hatchet](https://github.com/hatchet-dev/hatchet). It handles the complexities of durable execution, queueing and scheduling so you can focus on building your application. [It is not a framework.](#philosophy)
+Pickaxe is a simple Typescript library for building AI agents that are fault-tolerant and scalable. It handles the complexities of durable execution, queueing and scheduling, allowing you to focus on writing core business logic. [It is not a framework](#philosophy).
 
-Pickaxe agents are:
+Everything in Pickaxe is just a function that **you have written**, which makes it easy to integrate with your existing codebase and business logic. You can build agents that call tools, other agents, or any other functions you define:
 
-- **💻 Code-first** - agents are defined as code and are designed to integrate with your business logic.
-- **🌐 Distributed** - all agents and tools run across a fleet of machines, where scheduling is handled gracefully by Pickaxe. When your underlying machine fails, Pickaxe takes care of rescheduling and resuming the agent on a different machine.
-- **⚙️ Configurable** - simple configuration for retries, rate limiting, concurrency control, and much more
-- **☁️ Runnable anywhere** - Pickaxe agents can run on any container-based platform (Hatchet, Railway, Fly.io, Porter, Kubernetes, AWS ECS, GCP Cloud Run)
+```ts
+import { pickaxe } from "@hatchet-dev/pickaxe";
+import z from "zod";
+import { myTool1, myTool2 } from "@/tools/my-tool";
+
+const MyAgentInput = z.object({
+  message: z.string(),
+});
+
+const MyAgentOutput = z.object({
+  message: z.string(),
+});
+
+export const myToolbox = pickaxe.toolbox({
+  tools: [myTool1, myTool2],
+});
+
+export const myAgent = pickaxe.agent({
+  name: "my-agent",
+  executionTimeout: "15m",
+  inputSchema: MyAgentInput,
+  outputSchema: MyAgentOutput,
+  description: "Description of what this agent does",
+  fn: async (input, ctx) => {
+    const result = await myToolbox.pickAndRun({
+      prompt: input.message,
+    });
+
+    switch (result.name) {
+      case "myTool1":
+        return {
+          message: `Result: ${result.output}`,
+        };
+      case "myTool2":
+        return {
+          message: `Another result: ${result.output}`,
+        };
+      default:
+        return myToolbox.assertExhaustive(result);
+    }
+  },
+});
+```
 
 ## Get started
 
@@ -33,15 +72,28 @@ pnpm i -g @hatchet-dev/pickaxe-cli
 pickaxe create first-agent
 ```
 
-This will prompt you to create a new Pickaxe project from a template to see an e2e example of Pickaxe in action.
+This will prompt you to create a new Pickaxe project from a template to see an end to end example of Pickaxe in action.
 
 For a full quickstart, check out our [documentation](https://pickaxe.hatchet.run/quickstart).
 
+## Benefits
+
+Pickaxe is centered around the benefit of **durable execution**, which creates automatic checkpoints for agents so that they can easily recover from failure or wait for external events for a very long time without consuming resources. This is achieved by using a durable task queue called [Hatchet](https://github.com/hatchet-dev/hatchet).
+
+Additionally, Pickaxe agents are:
+
+- **💻 Code-first** - agents are defined as code and are designed to integrate with your business logic.
+- **🌐 Distributed** - all agents and tools run across a fleet of machines, where scheduling is handled gracefully by Pickaxe. When your underlying machine fails, Pickaxe takes care of rescheduling and resuming the agent on a different machine.
+- **⚙️ Configurable** - simple configuration for retries, rate limiting, concurrency control, and much more
+- **☁️ Runnable anywhere** - Pickaxe agents can run on any container-based platform (Hatchet, Railway, Fly.io, Porter, Kubernetes, AWS ECS, GCP Cloud Run)
+
+## Scalability
+
+Pickaxe is designed for scale: specifically, massive throughput and parallelism. Hatchet has run agentic workloads which spawn hundreds of thousands of tasks for a single execution, and runs billions of tasks per month.
+
 ## Philosophy
 
-Pickaxe is not a framework, it is a library for orchestrating AI agents. It does not impose any constraints on how you design your tools, call LLMs, or implement features like agent memory. In other words, Pickaxe is opinionated about how agents should be _architected_, but not about how they should be _implemented_.
-
-Everything in Pickaxe is just a function. This means you can choose or build the best memory, knowledge, reasoning, or integrations. We built this after seeing core [Hatchet](https://github.com/hatchet-dev/hatchet) users build sophisticated agentic workloads in this way using simple Hatchet primitives -- we've simply codified the best practices and gave them common names.
+Pickaxe is not a framework. Agents and tools are simply functions that you have written. This means you can choose or build the best memory, knowledge, reasoning, or integrations. It does not impose any constraints on how you design your tools, call LLMs, or implement features like agent memory. Pickaxe is opinionated about the infrastructure layer of your agents, but not about the implementation details of your agents.
 
 ## Documentation
 
