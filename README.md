@@ -63,6 +63,8 @@ export const myAgent = pickaxe.agent({
 });
 ```
 
+_Not sure if Pickaxe is a good fit? [Book office hours](https://cal.com/team/hatchet/office-hours)_
+
 ## Get started
 
 Getting started is as easy as two commands:
