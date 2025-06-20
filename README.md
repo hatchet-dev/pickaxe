@@ -19,6 +19,12 @@ Pickaxe is a simple Typescript library for building AI agents that are fault-tol
 
 Everything in Pickaxe is just a function that **you have written**, which makes it easy to integrate with your existing codebase and business logic. You can build agents that call tools, other agents, or any other functions you define:
 
+https://github.com/user-attachments/assets/b28fc406-f501-4427-9574-e4c756b29dd4
+
+_Not sure if Pickaxe is a good fit? [Book office hours](https://cal.com/team/hatchet/office-hours)_
+
+## Code Example
+
 ```ts
 import { pickaxe } from "@hatchet-dev/pickaxe";
 import z from "zod";
@@ -62,12 +68,6 @@ export const myAgent = pickaxe.agent({
   },
 });
 ```
-
-_Not sure if Pickaxe is a good fit? [Book office hours](https://cal.com/team/hatchet/office-hours)_
-
-## Demo
-
-https://github.com/user-attachments/assets/b28fc406-f501-4427-9574-e4c756b29dd4
 
 ## Get started
 
