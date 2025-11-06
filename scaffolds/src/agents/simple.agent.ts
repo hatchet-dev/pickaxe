@@ -30,18 +30,21 @@ export const simpleAgent = icepick.agent({
     switch (result.name) {
       case "weather":
         return {
-          message: `The weather in ${result.args.city} is ${result.output}`,
+          message: `The weather in ${result.args.city} is ${result.output.weather}`,
         };
       case "time":
         return {
-          message: `The time in ${result.args.city} is ${result.output}`,
+          message: `The time in ${result.args.city} is ${result.output.time}`,
         };
       case "holiday":
         return {
-          message: `The holiday in ${result.args.country} is ${result.output}`,
+          message: `The holiday in ${result.args.country} is ${result.output.holiday}`,
         };
       default:
-        return simpleToolbox.assertExhaustive(result);
+        simpleToolbox.assertExhaustive(result);
+        return {
+          message: "Unknown tool result",
+        };
     }
   },
 });

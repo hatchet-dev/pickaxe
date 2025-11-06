@@ -1,25 +1,42 @@
 import { z } from "zod";
 import { icepick } from "@/icepick-client";
 
-const SimpleInput = z.object({
-  message: z.string()
-})
+const TimeInput = z.object({
+  city: z.string().describe("The city to get the time for")
+});
 
-const SimpleOutput = z.object({
-  response: z.string()
-})
+const TimeOutput = z.object({
+  time: z.string()
+});
 
-export const simple = icepick.tool({
-  name: "simple-tool",
-  description: "Scaffold tool ",
-  inputSchema: SimpleInput,
-  outputSchema: SimpleOutput,
+export const time = icepick.tool({
+  name: "time",
+  description: "Get the current time in a given city",
+  inputSchema: TimeInput,
+  outputSchema: TimeOutput,
   fn: async (input) => {
-
-    // TODO: Replace this with your actual tool implementation
-
     return {
-      response: 'Hello, World!'
+      time: new Date().toLocaleTimeString(),
     };
-  }
+  },
+});
+
+const HolidayInput = z.object({
+  country: z.string().describe("The country to get the holiday for")
+});
+
+const HolidayOutput = z.object({
+  holiday: z.string()
+});
+
+export const holiday = icepick.tool({
+  name: "holiday",
+  description: "Get the current holiday in a given country",
+  inputSchema: HolidayInput,
+  outputSchema: HolidayOutput,
+  fn: async (input) => {
+    return {
+      holiday: "No holiday today",
+    };
+  },
 });

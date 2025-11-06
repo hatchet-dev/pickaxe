@@ -2,27 +2,6 @@ import { icepick } from "@/icepick-client";
 import z from "zod";
 import { generateObject } from "ai";
 
-icepick.admin.runWorkflow("PdfToMarkdown", {
-  pdf_url: input.pdf_url,
-});
-
-
-type PdfToMarkdownInput = {
-  pdf_url: string;
-};
-
-type PdfToMarkdownOutput = {
-  PdfToMarkdown: {
-    markdown: string;
-  };
-};
-
-const pdfToMarkdown = icepick.workflow<PdfToMarkdownInput, PdfToMarkdownOutput>({
-  name: "PdfToMarkdown",
-  description: "Convert a PDF to a markdown file",
-});
-
-
 export const helpfulnessVoterTool = icepick.tool({
   name: "helpfulness-voter-tool",
   description: "A specialized voting agent that evaluates the helpfulness and relevance of chat responses",
