@@ -48,3 +48,5 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+
+.pnpm-store

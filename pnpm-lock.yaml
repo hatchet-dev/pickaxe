@@ -41,6 +41,15 @@ importers:
       '@types/prompts':
         specifier: ^2.4.9
         version: 2.4.9
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.18.0
+        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^7.18.0
+        version: 7.18.0(eslint@8.57.1)(typescript@5.8.3)
+      eslint:
+        specifier: ^8.57.1
+        version: 8.57.1
       jest:
         specifier: ^30.0.0
         version: 30.0.0(@types/node@24.0.1)(ts-node@10.9.2(@types/node@24.0.1)(typescript@5.8.3))

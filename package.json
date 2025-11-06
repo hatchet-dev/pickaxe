@@ -2,8 +2,9 @@
   "name": "icepick-monorepo",
   "private": true,
   "workspaces": [
-    "utils",
-    "scaffold"
+    "cli",
+    "scaffolds",
+    "sdk"
   ],
   "scripts": {
     "build": "npm run build --workspaces",

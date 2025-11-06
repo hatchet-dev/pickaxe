@@ -13,6 +13,6 @@
       "@hatchet-dev/icepick/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "../scaffold/src/tools/toolbox.ts"],
+  "include": ["src/**/*", "index.ts", "../scaffold/src/tools/toolbox.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 } 
